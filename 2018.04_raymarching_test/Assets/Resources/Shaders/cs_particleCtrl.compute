@@ -1,0 +1,145 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel cs_init_buffers
+#pragma kernel cs_update_buffers
+
+// import noise lib
+#include "Assets/Resources/Shaders/SimplexNoise3D.cginc"
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> out_pos_and_life;
+RWTexture2D<float4> out_vel_and_scale;
+
+// uniforms
+//
+Texture2D<float4> u_p_pos_and_life;
+Texture2D<float4> u_p_vel_and_scale;
+float u_time_delta;
+float u_time;
+float3 u_stay_in_cube_range;
+// -
+
+// Custom Functions
+//
+float4 reset_pos_and_life(in float3 _seed) 
+{
+	float4 _data = snoise_grad(_seed * 5678.9012);
+	float3 pos = _data.xyz;
+	/*if (length(pos) > .5)
+		pos = normalize(pos) * .5;*/
+	float life = abs(_data.w * 3. + 1.);
+
+	return float4(pos, life);
+}
+
+float4 reset_vel_and_scale(in float3 _seed)
+{
+	float4 _data = snoise_grad(_seed * 1234.5678);
+	float3 vel = _data.xyz * 2.;
+	float scale = length((vel * .1 + .9) * .9);
+
+	return float4(vel, scale);
+}
+
+void revive(inout float3 _pos, inout float _life, inout float3 _vel, inout float _scale)
+{
+	float4 _data = reset_pos_and_life(_pos);
+	_pos = _data.xyz;
+	_life = _data.w;
+	
+	_data = reset_vel_and_scale(_pos);
+	_vel = _data.xyz;
+	_scale = _data.w;
+}
+
+void stay_in_cube(inout float3 _pos, in float _scale, inout float3 _vel)
+{
+	// TODO apply spheres' radius
+
+	float bounce_decay = -.8;
+	if (_pos.x < -u_stay_in_cube_range.x)
+	{
+		_pos.x = -u_stay_in_cube_range.x;
+		_vel.x *= bounce_decay;
+	}
+	if (_pos.x > u_stay_in_cube_range.x)
+	{
+		_pos.x = u_stay_in_cube_range.x;
+		_vel.x *= bounce_decay;
+	}
+
+	if (_pos.y < -u_stay_in_cube_range.y)
+	{
+		_pos.y = -u_stay_in_cube_range.y;
+		_vel.y *= bounce_decay;
+	}
+	if (_pos.y > u_stay_in_cube_range.y)
+	{
+		_pos.y = u_stay_in_cube_range.y;
+		_vel.y *= bounce_decay;
+	}
+
+	if (_pos.z < -u_stay_in_cube_range.z)
+	{
+		_pos.z = -u_stay_in_cube_range.z;
+		_vel.z *= bounce_decay;
+	}
+	if (_pos.z > u_stay_in_cube_range.z)
+	{
+		_pos.z = u_stay_in_cube_range.z;
+		_vel.z *= bounce_decay;
+	}
+}
+
+void clamp_vel(inout float3 _vel) 
+{
+	if (length(_vel) > 2.)
+		_vel = normalize(_vel) * 2.;
+}
+// -
+
+
+// CS Functions
+//
+[numthreads(8, 8, 1)]
+void cs_init_buffers(uint3 id : SV_DispatchThreadID)
+{
+	float4 seed = reset_pos_and_life(float3(id));
+	out_pos_and_life[id.xy] = seed;
+	out_vel_and_scale[id.xy] = reset_vel_and_scale(seed.xyz);
+}
+
+[numthreads(8,8,1)]
+void cs_update_buffers(uint3 global_id : SV_DispatchThreadID, uint3 local_id : SV_GroupThreadID)
+{	
+	// unpack data to vars
+	float4 _data = u_p_pos_and_life.Load(int3(global_id.xy, 0));
+	float3 m_pos = _data.xyz;
+	float m_life = _data.w;
+	_data = u_p_vel_and_scale.Load(int3(global_id.xy, 0));
+	float3 m_vel = _data.xyz;
+	float m_scale = _data.w;
+
+	// update events
+	if (m_life < .001) 
+		revive(m_pos, m_life, m_vel, m_scale);
+	stay_in_cube(m_pos, m_scale, m_vel);
+
+	// update data 
+	//
+	clamp_vel(m_vel);
+
+	m_vel *= .96;
+	m_life *= .96; 
+
+	float _rad = u_time_delta * u_time * 3.1459/180.;
+	m_scale += 0.06 * sin((_rad + m_life) * 30.) / sqrt((_rad + m_life)) * (1. - sqrt((_rad + m_life)));
+	m_scale *= min(m_life * 15., 1.);
+	m_scale = max(m_scale, 0.);
+
+	m_pos += m_vel * u_time_delta;
+	
+	// out data
+	out_pos_and_life[global_id.xy] = float4(m_pos, m_life);
+	out_vel_and_scale[global_id.xy] = float4(m_vel, m_scale);
+}

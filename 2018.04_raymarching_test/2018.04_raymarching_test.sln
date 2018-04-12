@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "2018.04_raymarching_test", "2018.04_raymarching_test.csproj", "{0A069825-5916-58F1-C4FD-EA764C2B0BBE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "2018.04_raymarching_test.Editor", "2018.04_raymarching_test.Editor.csproj", "{4581380D-3B79-DFD3-D184-14A90977E7DA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0A069825-5916-58F1-C4FD-EA764C2B0BBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A069825-5916-58F1-C4FD-EA764C2B0BBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A069825-5916-58F1-C4FD-EA764C2B0BBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A069825-5916-58F1-C4FD-EA764C2B0BBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4581380D-3B79-DFD3-D184-14A90977E7DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4581380D-3B79-DFD3-D184-14A90977E7DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4581380D-3B79-DFD3-D184-14A90977E7DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4581380D-3B79-DFD3-D184-14A90977E7DA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
