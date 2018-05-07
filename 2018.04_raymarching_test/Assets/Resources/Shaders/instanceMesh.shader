@@ -42,14 +42,14 @@
 		{
 			//https://docs.unity3d.com/ScriptReference/Graphics.DrawMeshInstancedIndirect.html
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-			float _buf_size = sqrt(64);
+			float _buf_size = 16;
 			int3 _buf_uv = int3(
 				unity_InstanceID % (int)_buf_size,
 				(int)((float)unity_InstanceID / _buf_size), 
 				0.);
 			float4 _data = u_cs_buf_pos_and_life.Load(_buf_uv);
 			float3 pos = u_cs_buf_pos_and_life.Load(_buf_uv).xyz;
-			float scale = u_cs_buf_vel_and_scale.Load(_buf_uv).w;
+			float scale = u_cs_buf_vel_and_scale.Load(_buf_uv).w * 1.5;
 
 			unity_ObjectToWorld._11_21_31_41 = float4(scale, 0, 0, 0);
 			unity_ObjectToWorld._12_22_32_42 = float4(0, scale, 0, 0);
@@ -65,7 +65,7 @@
 		void surf (Input IN, inout SurfaceOutputStandard o) {
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
 
-			float _buf_size = sqrt(64);
+			float _buf_size = 16;
 			int3 _buf_uv = int3(
 				unity_InstanceID % (int)_buf_size,
 				(int)((float)unity_InstanceID / _buf_size),

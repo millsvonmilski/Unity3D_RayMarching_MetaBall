@@ -8,6 +8,7 @@ public class RayMarchCtrl : MonoBehaviour {
     // -
     [Header("scene")]
     public Camera m_cam;
+    public bool is_cam_moving = true;
 
     [Range (0.0f, 1.0f)]
     public float m_time_delta;
@@ -27,6 +28,11 @@ public class RayMarchCtrl : MonoBehaviour {
     [Header("cs particle behaviours")]
     public ComputeShader m_cs_particleCtrl;
 
+    [Range(0.01f, 1.0f)]
+    public float m_blob_scale_factor;
+    [Range(1.0f, 16.0f)]
+    public float m_particle_num_sqrt;
+
     [Range (1.0f, 5.0f)]
     public float m_stay_in_cube_range_x;
     [Range(1.0f, 5.0f)]
@@ -34,9 +40,10 @@ public class RayMarchCtrl : MonoBehaviour {
     [Range(1.0f, 5.0f)]
     public float m_stay_in_cube_range_z;
 
-    private int num_particles = 64; // <- power of two for the convenience
-    private int num_particles_sqrt; 
-    private int num_cs_workers_in_thread;
+    private int tex_size_sqrt = 16;
+    private int num_particles;
+    private int num_cs_thread = 16; // need to be matched with [numthreads(num_cs_thread, num_cs_thread, 1)] in compute shader
+    private int num_cs_threadGroup;
     private RenderTexture[] m_cs_out_pos_and_life;
     private RenderTexture[] m_cs_out_vel_and_scale;
     // -
@@ -52,7 +59,6 @@ public class RayMarchCtrl : MonoBehaviour {
     private ComputeBuffer m_buf_args;
     private Material m_mat_instance;
     private uint[] m_args = new uint[5] { 0, 0, 0, 0, 0 };
-    private int m_cachedInstanceCount = -1;
     // -
 
     // metaball variables
@@ -83,7 +89,8 @@ public class RayMarchCtrl : MonoBehaviour {
             init_resources();
 
         // update camera motion
-        update_camera();
+        if(is_cam_moving)
+            update_camera();
 
         // update cs-particle textures
         update_cs_particleCtrl();
@@ -122,9 +129,9 @@ public class RayMarchCtrl : MonoBehaviour {
 
     // Custom Functions
     // 
-    private RenderTexture create_cs_out_texture(int _texRes)
+    private RenderTexture create_cs_out_texture(int _w, int _h)
     {
-        RenderTexture _out = new RenderTexture(_texRes, _texRes, 24);
+        RenderTexture _out = new RenderTexture(_w, _h, 24);
         _out.format = RenderTextureFormat.ARGBFloat; // 32bit to encode pos/vel data
         _out.filterMode = FilterMode.Point;
         _out.wrapMode = TextureWrapMode.Clamp;
@@ -136,9 +143,10 @@ public class RayMarchCtrl : MonoBehaviour {
 
     private void init_resources()
     {
-        num_particles_sqrt = (int)Mathf.Sqrt((float)num_particles);
-        num_cs_workers_in_thread = (int)((float)num_particles_sqrt / 8.0f);
-
+        // ref - how numthreads works in compute shader
+        // https://msdn.microsoft.com/en-us/library/windows/desktop/ff471442(v=vs.85).aspx
+        num_particles = tex_size_sqrt * tex_size_sqrt;
+        num_cs_threadGroup = (int)((float)tex_size_sqrt / num_cs_thread);
 
         // init materials 
         m_mat_metaBall = new Material(m_shdr_metaBall);
@@ -152,8 +160,8 @@ public class RayMarchCtrl : MonoBehaviour {
 
         for (int i = 0; i < 2; i++)
         {
-            m_cs_out_pos_and_life[i] = create_cs_out_texture(num_particles_sqrt);
-            m_cs_out_vel_and_scale[i] = create_cs_out_texture(num_particles_sqrt);
+            m_cs_out_pos_and_life[i] = create_cs_out_texture(tex_size_sqrt, tex_size_sqrt);
+            m_cs_out_vel_and_scale[i] = create_cs_out_texture(tex_size_sqrt, tex_size_sqrt);
         }
         init_cs_buffers();
 
@@ -201,18 +209,19 @@ public class RayMarchCtrl : MonoBehaviour {
         m_cs_particleCtrl.SetTexture(kernel_id, "out_pos_and_life", m_cs_out_pos_and_life[cur_frame^1]);
         m_cs_particleCtrl.SetTexture(kernel_id, "out_vel_and_scale", m_cs_out_vel_and_scale[cur_frame^1]);
         
-        m_cs_particleCtrl.Dispatch(kernel_id, num_cs_workers_in_thread, num_cs_workers_in_thread, 1);
+        m_cs_particleCtrl.Dispatch(
+            kernel_id, num_cs_threadGroup, num_cs_threadGroup, 1);
     }
 
     private void update_camera()
     {
         float _deg = (float)Time.frameCount * 0.5f;
-        float _rad = _deg * (Mathf.PI / 180.0f);
+        float _rad = _deg * (Mathf.PI / 180.0f) * m_time_delta;
         float _r = Mathf.Sin(_rad) * 2.0f + 9.0f;
 
         Vector3 pos = Vector3.zero;
         pos.x = Mathf.Sin(_rad) * _r;
-        pos.y = Mathf.Atan(pos.x + pos.z);
+        pos.y = Mathf.Cos(_rad * 0.4f);
         pos.z = Mathf.Cos(_rad) * _r;
 
         m_cam.transform.position = pos;
@@ -231,24 +240,26 @@ public class RayMarchCtrl : MonoBehaviour {
 
         m_cs_particleCtrl.SetFloat("u_time_delta", m_time_delta);
         m_cs_particleCtrl.SetFloat("u_time", Time.fixedTime);
+        m_cs_particleCtrl.SetFloat("u_blob_scale_factor", m_blob_scale_factor);
 
         m_cs_particleCtrl.SetVector("u_stay_in_cube_range", 
             new Vector3(m_stay_in_cube_range_x, m_stay_in_cube_range_y, m_stay_in_cube_range_z));
   
-        m_cs_particleCtrl.Dispatch(kernel_id, num_cs_workers_in_thread, num_cs_workers_in_thread, 1);
+        m_cs_particleCtrl.Dispatch(
+            kernel_id, num_cs_threadGroup, num_cs_threadGroup, 1);
     }
 
     private void render_metaBall(RenderTexture _src, RenderTexture _out)
     {
         m_mat_metaBall.SetFloat("u_EPSILON", m_EPSILON);
+        m_mat_metaBall.SetFloat("u_particle_num_sqrt", (int)m_particle_num_sqrt);
 
         m_mat_metaBall.SetTexture("u_cubemap", m_cubemap_sky);
 
         m_mat_metaBall.SetTexture("u_cs_buf_pos_and_life", m_cs_out_pos_and_life[cur_frame]);
         m_mat_metaBall.SetTexture("u_cs_buf_vel_and_scale", m_cs_out_vel_and_scale[cur_frame]);
 
-        m_mat_metaBall.SetMatrix("u_inv_proj_mat", m_cam.projectionMatrix.inverse);
-        m_mat_metaBall.SetMatrix("u_inv_view_mat", m_cam.cameraToWorldMatrix);
+        m_mat_metaBall.SetMatrix("u_inv_view", m_cam.cameraToWorldMatrix);
 
         Graphics.Blit(_src, _out, m_mat_metaBall);
     }

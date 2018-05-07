@@ -16,6 +16,7 @@ Texture2D<float4> u_p_pos_and_life;
 Texture2D<float4> u_p_vel_and_scale;
 float u_time_delta;
 float u_time;
+float u_blob_scale_factor;
 float3 u_stay_in_cube_range;
 // -
 
@@ -36,7 +37,7 @@ float4 reset_vel_and_scale(in float3 _seed)
 {
 	float4 _data = snoise_grad(_seed * 1234.5678);
 	float3 vel = _data.xyz * 2.;
-	float scale = length((vel * .1 + .9) * .9);
+	float scale = length((vel * .1 + .9) * u_blob_scale_factor);
 
 	return float4(vel, scale);
 }
@@ -101,7 +102,7 @@ void clamp_vel(inout float3 _vel)
 
 // CS Functions
 //
-[numthreads(8, 8, 1)]
+[numthreads(16, 16, 1)]
 void cs_init_buffers(uint3 id : SV_DispatchThreadID)
 {
 	float4 seed = reset_pos_and_life(float3(id));
@@ -109,7 +110,7 @@ void cs_init_buffers(uint3 id : SV_DispatchThreadID)
 	out_vel_and_scale[id.xy] = reset_vel_and_scale(seed.xyz);
 }
 
-[numthreads(8,8,1)]
+[numthreads(16, 16, 1)]
 void cs_update_buffers(uint3 global_id : SV_DispatchThreadID, uint3 local_id : SV_GroupThreadID)
 {	
 	// unpack data to vars
@@ -126,7 +127,6 @@ void cs_update_buffers(uint3 global_id : SV_DispatchThreadID, uint3 local_id : S
 	stay_in_cube(m_pos, m_scale, m_vel);
 
 	// update data 
-	//
 	clamp_vel(m_vel);
 
 	m_vel *= .96;
@@ -135,7 +135,7 @@ void cs_update_buffers(uint3 global_id : SV_DispatchThreadID, uint3 local_id : S
 	float _rad = u_time_delta * u_time * 3.1459/180.;
 	m_scale += 0.06 * sin((_rad + m_life) * 30.) / sqrt((_rad + m_life)) * (1. - sqrt((_rad + m_life)));
 	m_scale *= min(m_life * 15., 1.);
-	m_scale = max(m_scale, 0.);
+	m_scale = max(m_scale, .01);
 
 	m_pos += m_vel * u_time_delta;
 	
