@@ -33,13 +33,6 @@ public class RayMarchCtrl : MonoBehaviour {
     [Range(1.0f, 16.0f)]
     public float m_particle_num_sqrt;
 
-    [Range (1.0f, 5.0f)]
-    public float m_stay_in_cube_range_x;
-    [Range(1.0f, 5.0f)]
-    public float m_stay_in_cube_range_y;
-    [Range(1.0f, 5.0f)]
-    public float m_stay_in_cube_range_z;
-
     private int tex_size_sqrt = 16;
     private int num_particles;
     private int num_cs_thread = 16; // need to be matched with [numthreads(num_cs_thread, num_cs_thread, 1)] in compute shader
@@ -66,6 +59,10 @@ public class RayMarchCtrl : MonoBehaviour {
     [Header("raymarch metaball")]
     public Shader m_shdr_metaBall;
     public Cubemap m_cubemap_sky;
+
+    private Mesh mCube;
+    private MeshFilter mMeshFilter;
+    private MeshRenderer mMeshRenderer;
 
     [Range(0.0001f, 0.01f)]
     public float m_EPSILON;
@@ -99,22 +96,9 @@ public class RayMarchCtrl : MonoBehaviour {
         if(render_debug_mesh)
             render_instancedMesh();
 
-        // meataball will be updated and renderd in OnRenderImage after this Update
-        // https://docs.unity3d.com/Manual/ExecutionOrder.html
-    }
-
-    private void OnRenderImage(RenderTexture _src, RenderTexture _dst)
-    {
         // update and render metalball
         if (render_rayMarch)
-        {
-            if (is_downSampling)
-                downSample(_src, _dst);
-            else
-                render_metaBall(_src, _dst);
-        }
-        else
-            Graphics.Blit(_src, _dst);
+            update_metaBall();
 
         // swap index for pingponging buffer
         cur_frame ^= 1;
@@ -153,6 +137,14 @@ public class RayMarchCtrl : MonoBehaviour {
         m_mat_instance = new Material(m_shdr_instance);
         m_mat_instance.enableInstancing = true;
 
+        // build cube
+        mCube = buildCube();
+        // mesh filter 
+        mMeshFilter = gameObject.AddComponent<MeshFilter>() as MeshFilter;
+        mMeshFilter.sharedMesh = mCube;
+        // mesh renderer
+        mMeshRenderer = gameObject.AddComponent<MeshRenderer>() as MeshRenderer;
+        mMeshRenderer.sharedMaterial = m_mat_metaBall;
 
         // init render textures 
         m_cs_out_pos_and_life = new RenderTexture[2];
@@ -181,6 +173,14 @@ public class RayMarchCtrl : MonoBehaviour {
 
     private void destroy_resources()
     {
+        if (mCube)
+            Destroy(mCube);
+
+        if (mMeshFilter)
+            Destroy(mMeshFilter);
+        if (mMeshRenderer)
+            Destroy(mMeshRenderer);
+
         if(m_mat_metaBall)
             Destroy(m_mat_metaBall);
         if (m_mat_instance)
@@ -243,35 +243,23 @@ public class RayMarchCtrl : MonoBehaviour {
         m_cs_particleCtrl.SetFloat("u_blob_scale_factor", m_blob_scale_factor);
 
         m_cs_particleCtrl.SetVector("u_stay_in_cube_range", 
-            new Vector3(m_stay_in_cube_range_x, m_stay_in_cube_range_y, m_stay_in_cube_range_z));
+            new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z));
   
         m_cs_particleCtrl.Dispatch(
             kernel_id, num_cs_threadGroup, num_cs_threadGroup, 1);
     }
 
-    private void render_metaBall(RenderTexture _src, RenderTexture _out)
+    private void update_metaBall()
     {
         m_mat_metaBall.SetFloat("u_EPSILON", m_EPSILON);
         m_mat_metaBall.SetFloat("u_particle_num_sqrt", (int)m_particle_num_sqrt);
+
+        m_mat_metaBall.SetVector("u_translate", transform.position);
 
         m_mat_metaBall.SetTexture("u_cubemap", m_cubemap_sky);
 
         m_mat_metaBall.SetTexture("u_cs_buf_pos_and_life", m_cs_out_pos_and_life[cur_frame]);
         m_mat_metaBall.SetTexture("u_cs_buf_vel_and_scale", m_cs_out_vel_and_scale[cur_frame]);
-
-        m_mat_metaBall.SetMatrix("u_inv_view", m_cam.cameraToWorldMatrix);
-
-        Graphics.Blit(_src, _out, m_mat_metaBall);
-    }
-
-    private void downSample(RenderTexture _src, RenderTexture _out)
-    {
-        RenderTexture _ds = RenderTexture.GetTemporary((int)((float)(_src.width / m_downSample_rate)), (int)((float)_src.height / m_downSample_rate));
-
-        render_metaBall(_src, _ds);
-        Graphics.Blit(_ds, _out);
-
-        RenderTexture.ReleaseTemporary(_ds);
     }
 
     private void render_instancedMesh()
@@ -283,6 +271,42 @@ public class RayMarchCtrl : MonoBehaviour {
             m_mesh_instance, 0, m_mat_instance, 
             new Bounds( Vector3.zero, new Vector3(100.0f, 100.0f, 100.0f) ), 
             m_buf_args);
+    }
+
+    private Mesh buildCube()
+    {
+        var vertices = new Vector3[] {
+                new Vector3 (-1.0f, -1.0f, -1.0f),
+                new Vector3 ( 1.0f, -1.0f, -1.0f),
+                new Vector3 ( 1.0f,  1.0f, -1.0f),
+                new Vector3 (-1.0f,  1.0f, -1.0f),
+                new Vector3 (-1.0f,  1.0f,  1.0f),
+                new Vector3 ( 1.0f,  1.0f,  1.0f),
+                new Vector3 ( 1.0f, -1.0f,  1.0f),
+                new Vector3 (-1.0f, -1.0f,  1.0f),
+            };
+
+        var triangles = new int[] {
+                0, 2, 1,
+                0, 3, 2,
+                2, 3, 4,
+                2, 4, 5,
+                1, 2, 5,
+                1, 5, 6,
+                0, 7, 4,
+                0, 4, 3,
+                5, 4, 7,
+                5, 7, 6,
+                0, 6, 7,
+                0, 1, 6
+            };
+
+        Mesh mesh = new Mesh();
+        mesh.vertices = vertices;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+
+        return mesh;
     }
     // -
 }

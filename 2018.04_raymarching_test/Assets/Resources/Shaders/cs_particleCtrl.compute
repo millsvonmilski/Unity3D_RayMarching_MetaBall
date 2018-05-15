@@ -37,7 +37,7 @@ float4 reset_vel_and_scale(in float3 _seed)
 {
 	float4 _data = snoise_grad(_seed * 1234.5678);
 	float3 vel = _data.xyz * 2.;
-	float scale = length((vel * .1 + .9) * u_blob_scale_factor);
+	float scale = length((vel * .1 + .9) * u_blob_scale_factor) + .533;
 
 	return float4(vel, scale);
 }
@@ -55,47 +55,47 @@ void revive(inout float3 _pos, inout float _life, inout float3 _vel, inout float
 
 void stay_in_cube(inout float3 _pos, in float _scale, inout float3 _vel)
 {
-	// TODO apply spheres' radius
+	float3 m_stay_in_cube_range = u_stay_in_cube_range;
 
 	float bounce_decay = -.8;
-	if (_pos.x < -u_stay_in_cube_range.x)
+	if (_pos.x < -m_stay_in_cube_range.x + _scale)
 	{
-		_pos.x = -u_stay_in_cube_range.x;
+		_pos.x = -m_stay_in_cube_range.x + _scale;
 		_vel.x *= bounce_decay;
 	}
-	if (_pos.x > u_stay_in_cube_range.x)
+	if (_pos.x > m_stay_in_cube_range.x - _scale)
 	{
-		_pos.x = u_stay_in_cube_range.x;
+		_pos.x = m_stay_in_cube_range.x - _scale;
 		_vel.x *= bounce_decay;
 	}
 
-	if (_pos.y < -u_stay_in_cube_range.y)
+	if (_pos.y < -m_stay_in_cube_range.y + _scale)
 	{
-		_pos.y = -u_stay_in_cube_range.y;
+		_pos.y = -m_stay_in_cube_range.y + _scale;
 		_vel.y *= bounce_decay;
 	}
-	if (_pos.y > u_stay_in_cube_range.y)
+	if (_pos.y > m_stay_in_cube_range.y - _scale)
 	{
-		_pos.y = u_stay_in_cube_range.y;
+		_pos.y = m_stay_in_cube_range.y - _scale;
 		_vel.y *= bounce_decay;
 	}
 
-	if (_pos.z < -u_stay_in_cube_range.z)
+	if (_pos.z < -m_stay_in_cube_range.z + _scale)
 	{
-		_pos.z = -u_stay_in_cube_range.z;
+		_pos.z = -m_stay_in_cube_range.z + _scale;
 		_vel.z *= bounce_decay;
 	}
-	if (_pos.z > u_stay_in_cube_range.z)
+	if (_pos.z > m_stay_in_cube_range.z - _scale)
 	{
-		_pos.z = u_stay_in_cube_range.z;
+		_pos.z = m_stay_in_cube_range.z - _scale;
 		_vel.z *= bounce_decay;
 	}
 }
 
 void clamp_vel(inout float3 _vel) 
 {
-	if (length(_vel) > 2.)
-		_vel = normalize(_vel) * 2.;
+	if (length(_vel) > .3)
+		_vel = normalize(_vel) * .3;
 }
 // -
 

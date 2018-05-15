@@ -10,6 +10,10 @@ Shader "Custom/metaBall"
 	}
 	SubShader
 	{
+		// alpha blending
+		Tags{ "Queue" = "Transparent" }
+		Blend SrcAlpha OneMinusSrcAlpha
+
 		// No culling or depth
 		Cull Off ZWrite Off ZTest Always
 
@@ -29,7 +33,7 @@ Shader "Custom/metaBall"
 
 			struct v2f
 			{
-				float2 uv : TEXCOORD0;
+				float3 worldPos : TEXCOORD0;
 				float4 vertex : SV_POSITION;
 			};
 
@@ -42,10 +46,10 @@ Shader "Custom/metaBall"
 			Texture2D u_cs_buf_vel_and_scale;
 
 			samplerCUBE u_cubemap;
-			
-			float4x4 u_inv_view;
-			
+						
 			float u_EPSILON;
+
+			float3 u_translate;
 
 			int u_particle_num_sqrt;
 			// -
@@ -86,6 +90,17 @@ Shader "Custom/metaBall"
 				return frac(sin(float3(n, n + 1.0, n + 2.0))*float3(43758.5453123, 22578.1459123, 19642.3490423));
 			}
 
+			float sdSphere(float3 p, float s)
+			{
+				return length(p) - s;
+			}
+
+			float opBlend(float a, float b, float k = 0.2)
+			{
+				float h = clamp(0.5 + 0.5*(b - a) / k, 0.0, 1.0);
+				return lerp(b, a, h) - k * h*(1.0 - h);
+			}
+
 			float sdf_metaBall(float3 _point)
 			{
 				float is_in_sphere = 0.0;
@@ -99,7 +114,7 @@ Shader "Custom/metaBall"
 					for (int j = 0; j < u_particle_num_sqrt; j++)
 					{
 						int3 _texel_coords = int3(i, j, 0);
-						float3 blob_pos = u_cs_buf_pos_and_life.Load(_texel_coords).xyz;
+						float3 blob_pos = u_cs_buf_pos_and_life.Load(_texel_coords).xyz + u_translate;
 						float blob_scale = u_cs_buf_vel_and_scale.Load(_texel_coords).w;
 
 						// bounding sphere for ball
@@ -132,6 +147,20 @@ Shader "Custom/metaBall"
 			float distanceField(in float3 _point)
 			{
 				return sdf_metaBall(_point);
+				/*float map = 1e20;
+				for (int i = 0; i < u_particle_num_sqrt; i++)
+				{
+					for (int j = 0; j < u_particle_num_sqrt; j++)
+					{
+						int3 _texel_coords = int3(i, j, 0);
+						float3 blob_pos = u_cs_buf_pos_and_life.Load(_texel_coords).xyz + u_translate;
+						float blob_scale = u_cs_buf_vel_and_scale.Load(_texel_coords).w;
+
+						map = opBlend(map, sdSphere(blob_pos-_point, blob_scale));
+					}
+				}
+
+				return map;*/
 			}
 
 			float2 intersect(in float3 _rayOrigin, in float3 _rayDirection)
@@ -167,13 +196,13 @@ Shader "Custom/metaBall"
 					for (int j = 0; j < u_particle_num_sqrt; j++)
 					{
 						int3 _texel_coords = int3(i, j, 0);
-						float3 blob_pos = u_cs_buf_pos_and_life.Load(_texel_coords).xyz;
+						float3 blob_pos = u_cs_buf_pos_and_life.Load(_texel_coords).xyz + u_translate;
 						float blob_scale = u_cs_buf_vel_and_scale.Load(_texel_coords).w;
 
 						float db = length(blob_pos - _point);
 						float x = clamp(db / blob_scale, 0.0, 1.0);
 						float p = x * x*(30.0*x*x - 60.0*x + 30.0);
-						nor += normalize(_point - blob_pos) * p / blob_scale;
+						nor += normalize(_point - blob_pos) *p / blob_scale;
 					}
 					
 				}
@@ -200,7 +229,7 @@ Shader "Custom/metaBall"
 			{
 				float res = 1.0;
 				float t = _mint;
-				for (int i = 0; i < 64; i++)
+				for (int i = 0; i < 32; i++)
 				{
 					float h = distanceField(_rayOrigin + _rayDirection * t).x;
 					res = min(res, _k * h / t);
@@ -210,28 +239,13 @@ Shader "Custom/metaBall"
 				return clamp(res, 0.0, 1.0);
 			}
 
-			void render(in float2 _uv, inout float3 _col)
+			void render(in float3 _pixels, inout float4 _col)
 			{
 				// Setup rays
 				//
-				// Image plane in NDC space - UNITY_NEAR_CLIP_VALUE  
-				// give you the near plane value based on the platform you are working on 
-				// ex, Direct3D-like platforms use 0.0 while OpenGL-like platforms use –1.0. 
-				// https://docs.unity3d.com/Manual/SL-BuiltinMacros.html
-				//
-				float4 m_pixels = float4(_uv * 2. - 1., UNITY_NEAR_CLIP_VALUE, 1);
-				//
-				// unproject to view space  
-				m_pixels = mul(unity_CameraInvProjection, m_pixels);
-				//
-				// to world space
-				m_pixels = mul(u_inv_view, m_pixels);
-				//
-				// Perspective division
-				m_pixels.xyz /= m_pixels.w;
-
+				float3 m_pixels = _pixels;
 				float3 m_rayOrigin = _WorldSpaceCameraPos;
-				float3 m_rayDir = normalize(m_pixels.xyz - m_rayOrigin);
+				float3 m_rayDir = normalize(m_pixels - m_rayOrigin);
 
 				// TODO - depth seems incorrect
 				//
@@ -268,7 +282,7 @@ Shader "Custom/metaBall"
 							float3 blob_vel = _data.xyz;
 							float blob_scale = _data.w;
 							_data = u_cs_buf_pos_and_life.Load(_texel_coords);
-							float3 blob_pos = _data.xyz;
+							float3 blob_pos = _data.xyz + u_translate;
 							float blob_life = _data.w;
 
 							float x = clamp(length(blob_pos - m_geometry) / blob_scale, 0.0, 1.0);
@@ -306,7 +320,8 @@ Shader "Custom/metaBall"
 					m_brdf += pow(texCUBE(u_cubemap, m_reflect).rgb, 4.2) * (m_fre * .99 + .01);
 
 					// surface-light interacion
-					_col = m_brdf * m_material;
+					_col.rgb = m_brdf * m_material;
+					_col.a = 1.;
 					
 					// debug
 					// blob color
@@ -315,13 +330,13 @@ Shader "Custom/metaBall"
 					//_col = m_normal;
 					// height map
 					//_col = float3(pow(m_distanceMap/20., 2.), pow(m_distanceMap / 20., 2.), pow(m_distanceMap / 20., 2.));
-				}
 
-				// post processing
-				// https://www.shadertoy.com/view/ld2GRz
-				//
-				// gamma
-				_col = pow(clamp(_col, 0.0, 1.0), 0.45);
+					// post processing
+					// https://www.shadertoy.com/view/ld2GRz
+					//
+					// gamma
+					_col.rgb = pow(clamp(_col.rgb, 0.0, 1.0), 0.45);
+				}
 			}
 			// -
 
@@ -331,7 +346,7 @@ Shader "Custom/metaBall"
 			{
 				v2f o;
 				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.uv = v.uv;
+				o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
 				return o;
 			}
 			// -
@@ -340,12 +355,12 @@ Shader "Custom/metaBall"
 			//
 			fixed4 frag (v2f vert_in) : SV_Target
 			{
-				float2 m_uv = vert_in.uv;
-				float3 m_col = pow(tex2D(_MainTex, m_uv).rgb, 2.2);
+				float3 mPixels = vert_in.worldPos;
+				float4 mCol = float4(0.0, 0.0, 0.0, 0.0);
 
-				render(m_uv, m_col);
+				render(mPixels, mCol);
 
-				return float4(m_col, 1.0 );
+				return mCol;
 			}
 			ENDCG
 		}
