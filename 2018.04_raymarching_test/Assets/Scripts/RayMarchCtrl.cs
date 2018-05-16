@@ -6,6 +6,10 @@ public class RayMarchCtrl : MonoBehaviour {
 
     // global variables 
     // -
+    [Header("bg")]
+    public BgCamera mBgComp;
+    private RenderTexture mBgTex;
+
     [Header("scene")]
     public Camera m_cam;
     public bool is_cam_moving = true;
@@ -15,12 +19,6 @@ public class RayMarchCtrl : MonoBehaviour {
 
     private bool is_init = false;
     private int cur_frame = 0;
-
-    [Header("downSampling")]
-    public bool is_downSampling = false;
-
-    [Range(1.0f, 3.0f)]
-    public float m_downSample_rate = 1.0f;
     // -
 
     // cs_particle variables
@@ -64,11 +62,6 @@ public class RayMarchCtrl : MonoBehaviour {
     private MeshFilter mMeshFilter;
     private MeshRenderer mMeshRenderer;
 
-    [Range(0.0001f, 0.01f)]
-    public float m_EPSILON;
-
-    public bool render_rayMarch = true;
-
     private Material m_mat_metaBall;
     // -
 
@@ -95,10 +88,12 @@ public class RayMarchCtrl : MonoBehaviour {
         // draw instance
         if(render_debug_mesh)
             render_instancedMesh();
+        
+        // update bg texture
+        mBgTex = mBgComp.getBg();
 
-        // update and render metalball
-        if (render_rayMarch)
-            update_metaBall();
+        // update metalball
+        update_metaBall();
 
         // swap index for pingponging buffer
         cur_frame ^= 1;
@@ -221,11 +216,11 @@ public class RayMarchCtrl : MonoBehaviour {
 
         Vector3 pos = Vector3.zero;
         pos.x = Mathf.Sin(_rad) * _r;
-        pos.y = Mathf.Cos(_rad * 0.4f);
+        pos.y = Mathf.Cos(_rad * .4f);
         pos.z = Mathf.Cos(_rad) * _r;
 
         m_cam.transform.position = pos;
-        m_cam.transform.LookAt(Vector3.zero, Vector3.up);
+        m_cam.transform.LookAt(transform.position, Vector3.up);
     }
 
     private void update_cs_particleCtrl()
@@ -251,12 +246,12 @@ public class RayMarchCtrl : MonoBehaviour {
 
     private void update_metaBall()
     {
-        m_mat_metaBall.SetFloat("u_EPSILON", m_EPSILON);
         m_mat_metaBall.SetFloat("u_particle_num_sqrt", (int)m_particle_num_sqrt);
 
         m_mat_metaBall.SetVector("u_translate", transform.position);
 
         m_mat_metaBall.SetTexture("u_cubemap", m_cubemap_sky);
+        m_mat_metaBall.SetTexture("uBgTex", mBgTex);
 
         m_mat_metaBall.SetTexture("u_cs_buf_pos_and_life", m_cs_out_pos_and_life[cur_frame]);
         m_mat_metaBall.SetTexture("u_cs_buf_vel_and_scale", m_cs_out_vel_and_scale[cur_frame]);

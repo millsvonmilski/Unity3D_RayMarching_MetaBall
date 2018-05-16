@@ -393,6 +393,7 @@
     <None Include="Assets\PostProcessing\Resources\Shaders\Uber.shader" />
     <None Include="Assets\PostProcessing\Resources\Shaders\UberSecondPass.cginc" />
     <None Include="Assets\PostProcessing\Utilities\CustomMotionTexture\Shaders\CustomMotionVectorTexture.shader" />
+    <None Include="Assets\Resources\Shaders\BgCam.shader" />
     <None Include="Assets\Resources\Shaders\SimplexNoise2D.cginc" />
     <None Include="Assets\Resources\Shaders\SimplexNoise3D.cginc" />
     <None Include="Assets\Resources\Shaders\cs_particleCtrl.compute" />

@@ -38,17 +38,16 @@ Shader "Custom/metaBall"
 			};
 
 			sampler2D _MainTex;
-			sampler2D _CameraDepthTexture;
 
 			// uniforms
 			//			
 			Texture2D u_cs_buf_pos_and_life;
 			Texture2D u_cs_buf_vel_and_scale;
 
-			samplerCUBE u_cubemap;
-						
-			float u_EPSILON;
+			sampler2D uBgTex;
 
+			samplerCUBE u_cubemap;
+					
 			float3 u_translate;
 
 			int u_particle_num_sqrt;
@@ -64,6 +63,19 @@ Shader "Custom/metaBall"
 				float life;
 			};
 			// -
+
+			float4x4 rotationMatrix(float3 axis, float angle)
+			{
+				axis = normalize(axis);
+				float s = sin(angle);
+				float c = cos(angle);
+				float oc = 1.0 - c;
+
+				return float4x4(oc * axis.x * axis.x + c, oc * axis.x * axis.y - axis.z * s, oc * axis.z * axis.x + axis.y * s, 0.0,
+					oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c, oc * axis.y * axis.z - axis.x * s, 0.0,
+					oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c, 0.0,
+					0.0, 0.0, 0.0, 1.0);
+			}
 
 			// custom functions
 			//
@@ -165,13 +177,13 @@ Shader "Custom/metaBall"
 
 			float2 intersect(in float3 _rayOrigin, in float3 _rayDirection)
 			{
-				float epsilon = u_EPSILON;
+				float epsilon = 0.01;
 				float maxDist = _ProjectionParams.z;
 				float step = epsilon * 2.0;
 				float dist = 0.0;
 				float m = 1.0;
 
-				for (int i = 0; i < 75; i++)
+				for (int i = 0; i < 72; i++)
 				{
 					if (step < epsilon || dist > maxDist)
 						continue;// break;
@@ -213,7 +225,7 @@ Shader "Custom/metaBall"
 			float calcAO(in float3 _point, in float3 _normal)
 			{
 				float totao = 0.0;
-				for (int aoi = 0; aoi < 16; aoi++)
+				for (int aoi = 0; aoi < 32; aoi++)
 				{
 					float3 aopos = -1.0 + 2.0 * hash3(float(aoi)*213.47);
 					aopos *= sign(dot(aopos, _normal));
@@ -229,7 +241,7 @@ Shader "Custom/metaBall"
 			{
 				float res = 1.0;
 				float t = _mint;
-				for (int i = 0; i < 32; i++)
+				for (int i = 0; i < 8; i++)
 				{
 					float h = distanceField(_rayOrigin + _rayDirection * t).x;
 					res = min(res, _k * h / t);
@@ -267,6 +279,9 @@ Shader "Custom/metaBall"
 					float3 m_geometry = m_rayOrigin + m_distanceMap * m_rayDir;
 					float3 m_normal = calcNormal(m_geometry);
 					float3 m_reflect = reflect(m_rayDir, m_normal);
+					m_reflect = mul(
+						rotationMatrix(float3(0, 1, 0), -.5*_Time.y),
+						float4(m_reflect, 1.)).xyz;
 
 					// material
 					float3 m_material = float3(.3, .3, .3);
@@ -290,7 +305,7 @@ Shader "Custom/metaBall"
 							float p = 1.0 - x * x*(3.0 - 2.0*x);
 							m_metaball_blend += p;
 
-							m_blob_col += (abs(blob_vel*10.) * p);
+							m_blob_col += (abs(blob_vel*3.) * p);
 							
 							m_material.r += blob_life * p;
 							m_material.b += blob_scale * .5 * p;
@@ -299,15 +314,21 @@ Shader "Custom/metaBall"
 					m_blob_col /= m_metaball_blend;
 
 					// lighting
-					float m_occ = calcAO(m_geometry, m_normal);
+					float m_occ = 1.;// calcAO(m_geometry, m_normal);
 					float m_amb = 0.8 + 0.2 * m_normal.y;
 					float m_dif = max(dot(m_normal, _WorldSpaceLightPos0), 0.0);
 					float m_bac = max(dot(m_normal, normalize(float3(-_WorldSpaceLightPos0.x, 0.0, -_WorldSpaceLightPos0.z))), 0.0);
 					float m_sha = 0.0;
-					if (m_dif>0.001)
-						m_sha = calcShadow(m_geometry + 0.001*m_normal, _WorldSpaceLightPos0, 0.1, 32.0);
+					//if (m_dif>0.001)
+					//	m_sha = calcShadow(m_geometry + 0.001*m_normal, _WorldSpaceLightPos0, 0.1, 32.0);
 					float m_fre = pow(clamp(1.0 + dot(m_normal, m_rayDir), 0.0, 1.0), 2.0);
+					
+					// bg image 
+					float2 mUv = (m_geometry.xy + 5.25) * .12;
+					float3 mBg = tex2D(uBgTex, 1. - mUv).rgb;
 
+					m_blob_col *= mBg;
+					
 					// brdf
 					float3 m_brdf = float3(0., 0., 0.);
 					m_brdf += 1. * m_dif * m_blob_col * pow(float3(m_sha, m_sha, m_sha), float3(1.0, 1.2, 1.5));
@@ -335,7 +356,7 @@ Shader "Custom/metaBall"
 					// https://www.shadertoy.com/view/ld2GRz
 					//
 					// gamma
-					_col.rgb = pow(clamp(_col.rgb, 0.0, 1.0), 0.45);
+					_col.rgb = pow(clamp(_col.rgb, 0.0, 1.0), 0.25);
 				}
 			}
 			// -

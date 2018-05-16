@@ -1,8 +1,59 @@
 Base path: C:/Program Files/Unity/Editor/Data
 Cmd: initializeCompiler
 Cmd: compileComputeKernel
-  api=4 insize=3582 outsize=10633 ok=1
+  api=4 insize=3653 outsize=10617 ok=1
 Cmd: compileComputeKernel
-  api=4 insize=3641 outsize=10589 ok=1
+  api=4 insize=3652 outsize=10617 ok=1
 Cmd: compileComputeKernel
-  api=4 insize=3641 outsize=10589 ok=1
+  api=4 insize=3652 outsize=10617 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3652 outsize=10617 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3594 outsize=10617 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3538 outsize=10617 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3522 outsize=10585 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3523 outsize=10585 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3526 outsize=10477 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3489 outsize=10509 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3489 outsize=10509 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3489 outsize=10509 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3491 outsize=10509 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3491 outsize=10509 ok=1
+Cmd: compileComputeKernel
+  error: 2 plat 4 at cs_particleCtrl.compute(54): syntax error: unexpected token 'in'
+  error: 2 plat 4 at cs_particleCtrl.compute(58): undeclared identifier '_scale'
+  api=4 insize=3740 outsize=0 ok=0
+Cmd: compileComputeKernel
+  api=4 insize=3768 outsize=10833 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3807 outsize=10909 ok=1
+Cmd: compileComputeKernel
+  error: 2 plat 4 at cs_particleCtrl.compute(57): if statement conditional expressions must evaluate to a scalar
+  api=4 insize=3768 outsize=0 ok=0
+Cmd: compileComputeKernel
+  api=4 insize=3766 outsize=10841 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3769 outsize=10841 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3769 outsize=10841 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3766 outsize=10841 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3766 outsize=10841 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3794 outsize=10977 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3797 outsize=10985 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3799 outsize=10793 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=3691 outsize=10793 ok=1

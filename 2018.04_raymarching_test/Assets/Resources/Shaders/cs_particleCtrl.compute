@@ -26,8 +26,6 @@ float4 reset_pos_and_life(in float3 _seed)
 {
 	float4 _data = snoise_grad(_seed * 5678.9012);
 	float3 pos = _data.xyz;
-	/*if (length(pos) > .5)
-		pos = normalize(pos) * .5;*/
 	float life = abs(_data.w * 3. + 1.);
 
 	return float4(pos, life);
@@ -53,49 +51,59 @@ void revive(inout float3 _pos, inout float _life, inout float3 _vel, inout float
 	_scale = _data.w;
 }
 
+void calcGravity(inout float3 _vel, in float3 _pos, inout float _scale)
+{
+	float _dist = length(_pos);
+	if (_dist > .5)
+	{
+		float3 _dir = normalize(-_pos);
+		float3 _f = _dir * _scale / (_dist * _dist) * .3;
+		_vel += _f;
+		_scale += length(_f)*.1;
+	}
+}
+
 void stay_in_cube(inout float3 _pos, in float _scale, inout float3 _vel)
 {
-	float3 m_stay_in_cube_range = u_stay_in_cube_range;
-
 	float bounce_decay = -.8;
-	if (_pos.x < -m_stay_in_cube_range.x + _scale)
+	if (_pos.x < -u_stay_in_cube_range.x + _scale)
 	{
-		_pos.x = -m_stay_in_cube_range.x + _scale;
+		_pos.x = -u_stay_in_cube_range.x + _scale;
 		_vel.x *= bounce_decay;
 	}
-	if (_pos.x > m_stay_in_cube_range.x - _scale)
+	if (_pos.x > u_stay_in_cube_range.x - _scale)
 	{
-		_pos.x = m_stay_in_cube_range.x - _scale;
+		_pos.x = u_stay_in_cube_range.x - _scale;
 		_vel.x *= bounce_decay;
 	}
 
-	if (_pos.y < -m_stay_in_cube_range.y + _scale)
+	if (_pos.y < -u_stay_in_cube_range.y + _scale)
 	{
-		_pos.y = -m_stay_in_cube_range.y + _scale;
+		_pos.y = -u_stay_in_cube_range.y + _scale;
 		_vel.y *= bounce_decay;
 	}
-	if (_pos.y > m_stay_in_cube_range.y - _scale)
+	if (_pos.y > u_stay_in_cube_range.y - _scale)
 	{
-		_pos.y = m_stay_in_cube_range.y - _scale;
+		_pos.y = u_stay_in_cube_range.y - _scale;
 		_vel.y *= bounce_decay;
 	}
 
-	if (_pos.z < -m_stay_in_cube_range.z + _scale)
+	if (_pos.z < -u_stay_in_cube_range.z + _scale)
 	{
-		_pos.z = -m_stay_in_cube_range.z + _scale;
+		_pos.z = -u_stay_in_cube_range.z + _scale;
 		_vel.z *= bounce_decay;
 	}
-	if (_pos.z > m_stay_in_cube_range.z - _scale)
+	if (_pos.z > u_stay_in_cube_range.z - _scale)
 	{
-		_pos.z = m_stay_in_cube_range.z - _scale;
+		_pos.z = u_stay_in_cube_range.z - _scale;
 		_vel.z *= bounce_decay;
 	}
 }
 
 void clamp_vel(inout float3 _vel) 
 {
-	if (length(_vel) > .3)
-		_vel = normalize(_vel) * .3;
+	if (length(_vel) > 2.)
+		_vel = normalize(_vel) * 2.;
 }
 // -
 
@@ -125,19 +133,18 @@ void cs_update_buffers(uint3 global_id : SV_DispatchThreadID, uint3 local_id : S
 	if (m_life < .001) 
 		revive(m_pos, m_life, m_vel, m_scale);
 	stay_in_cube(m_pos, m_scale, m_vel);
+	calcGravity(m_vel, m_pos, m_scale);
 
 	// update data 
 	clamp_vel(m_vel);
 
-	m_vel *= .96;
+	m_vel *= .99;
 	m_life *= .96; 
 
-	float _rad = u_time_delta * u_time * 3.1459/180.;
-	m_scale += 0.06 * sin((_rad + m_life) * 30.) / sqrt((_rad + m_life)) * (1. - sqrt((_rad + m_life)));
 	m_scale *= min(m_life * 15., 1.);
 	m_scale = max(m_scale, .01);
 
-	m_pos += m_vel * u_time_delta;
+	m_pos += m_vel * u_time_delta * .5;
 	
 	// out data
 	out_pos_and_life[global_id.xy] = float4(m_pos, m_life);

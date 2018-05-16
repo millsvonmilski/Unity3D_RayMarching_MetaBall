@@ -49,7 +49,7 @@
 				0.);
 			float4 _data = u_cs_buf_pos_and_life.Load(_buf_uv);
 			float3 pos = u_cs_buf_pos_and_life.Load(_buf_uv).xyz;
-			float scale = u_cs_buf_vel_and_scale.Load(_buf_uv).w * 1.5;
+			float scale = u_cs_buf_vel_and_scale.Load(_buf_uv).w * .5;
 
 			unity_ObjectToWorld._11_21_31_41 = float4(scale, 0, 0, 0);
 			unity_ObjectToWorld._12_22_32_42 = float4(0, scale, 0, 0);
