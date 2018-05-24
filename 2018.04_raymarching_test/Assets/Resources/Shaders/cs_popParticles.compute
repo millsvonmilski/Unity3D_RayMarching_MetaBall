@@ -1,0 +1,122 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CsPopUpdate
+
+#include "Assets/Resources/Shaders/SimplexNoise3D.cginc"
+
+RWTexture2D<float4> out_posLife;
+RWTexture2D<float4> out_velScale;
+RWTexture2D<float4> out_collision;
+RWTexture2D<float4> out_colAccum;
+Texture2D<float4> pPosLife;
+Texture2D<float4> pVelScale;
+Texture2D<float4> pCollision;
+
+Texture2D<float4> uPosLifeData;
+Texture2D<float4> uVelScaleData;
+Texture2D<float4> uBlobNormal;
+Texture2D<float4> uBlobSurface;
+
+float3 uTranslate;
+float3 _WorldSpaceCameraPos;
+float uExposure;
+
+bool isInit;
+
+void calcCollision(
+	inout float4 collision,
+	in float3 pos,
+	inout float3 vel,
+	in float life,
+	inout float scale)
+{
+	uint i, j;
+	for (i = 0; i < 7; i++) 
+		for (j = 0; j < 7; j++) 
+		{
+			uint3 coords = uint3(i, j, 0);
+			float4 data = uVelScaleData.Load(coords);
+			float3 blobPos = uPosLifeData.Load(coords).xyz;
+			float3 blobVel = data.xyz;
+			float blobScale = data.w;
+
+			float colDist = distance(blobPos, pos) - scale - (blobScale-.16*blobScale);// metaball's threshold
+			if (colDist < .001)
+			{
+				vel += normalize(pos - blobPos) 
+					* (length(vel) + length(blobVel)) * .01;
+
+				collision.xyz += vel;
+				collision.xyz = normalize(collision.xyz);
+				collision.xyz = lerp(collision.yyy, collision.xyz, pow(uExposure, 2.));
+				collision.w += length(vel);
+
+				scale *= 1.1;
+			}
+		}
+}
+
+void resetPosLife(in float3 seed, inout float3 pos, inout float life) {
+	float4 data = snoise_grad(seed);
+	pos = data.xyz + float3(0, 100., 0);
+	life = abs(data.w * 35.) + 1.;
+}
+
+void resetVelScale(in float3 seed, inout float3 vel, inout float scale) {
+	float4 data = snoise_grad(seed);
+	vel = data.xyz * .3;
+	scale = abs(data.w * .1) + .1;
+}
+
+void revive(
+	in uint3 id,
+	inout float3 pos,
+	inout float3 vel,
+	inout float life,
+	inout float scale)
+{
+	float3 seed = pos + vel + float3(id)*.1234 + life + scale;
+	resetPosLife(seed, pos, life);
+	seed = pos + vel + float3(id)*.1234 + life + scale;
+	resetVelScale(seed, vel, scale);
+}
+
+[numthreads(8,8,1)]
+void CsPopUpdate (uint3 id : SV_DispatchThreadID)
+{
+	float4 mData = pPosLife.Load(int3(id.xy, 0));
+	float3 mPos = mData.xyz;
+	float mLife = mData.w;
+
+	mData = pVelScale.Load(int3(id.xy, 0));
+	float3 mVel = mData.xyz;
+	float mScale = mData.w;
+
+	float4 mCollision = pCollision.Load(int3(id.xy, 0));
+		
+	if (!isInit)
+	{
+		resetPosLife(float3(id), mPos, mLife);
+		resetVelScale(mPos, mVel, mScale);
+		mCollision = float4(0, 0, 0, 0);
+	}
+
+	if (mLife < .01) {
+		revive(id, mPos, mVel, mLife, mScale);
+		mCollision = float4(0, 0, 0, 0);
+	}
+
+	calcCollision(mCollision, mPos, mVel, mLife, mScale);
+	mCollision *= .96;
+
+	mVel.y -= .098 * mScale;
+
+	mVel *= .96;
+	mLife -= .05;
+	mScale = clamp(mScale, 0., 1.);
+	mScale *= min(mLife, 1.);
+	mPos += mVel;
+
+	out_posLife[id.xy] = float4(mPos, mLife);
+	out_velScale[id.xy] = float4(mVel, mScale);
+	out_collision[id.xy] = mCollision;
+}

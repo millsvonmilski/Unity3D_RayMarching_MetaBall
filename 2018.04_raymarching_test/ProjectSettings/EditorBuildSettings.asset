@@ -4,4 +4,10 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 0
+    path: Assets/Scenes/Application.LoadLevel(1).unity
+    guid: 5e7b0428957025d46aa77619400b750a
+  - enabled: 1
+    path: Assets/Scenes/ComputeShaderRayMarching.unity
+    guid: e97b65b840040f4459fb2c71c3d3d951

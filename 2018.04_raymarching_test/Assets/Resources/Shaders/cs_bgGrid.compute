@@ -1,0 +1,41 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CsBgGrid
+
+#include "Assets/Resources/Shaders/SimplexNoise3D.cginc"
+
+RWTexture2D<float4> out_particle;
+float uTime;
+bool isInit;
+
+float4x4 rotationMatrix(float3 axis, float angle)
+{
+	axis = normalize(axis);
+	float s = sin(angle);
+	float c = cos(angle);
+	float oc = 1.0 - c;
+
+	return float4x4(oc * axis.x * axis.x + c, oc * axis.x * axis.y - axis.z * s, oc * axis.z * axis.x + axis.y * s, 0.0,
+		oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c, oc * axis.y * axis.z - axis.x * s, 0.0,
+		oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c, 0.0,
+		0.0, 0.0, 0.0, 1.0);
+}
+
+void calcPosScale(in float3 seed, inout float3 pos, inout float scale) {
+	float4 d = (snoise_grad(seed * 1234.5678) - .5) * 2.;
+	pos = float3(d.x, d.y, d.z) * 30. + 50.;
+
+	pos = mul(rotationMatrix(float3(0, 1, 0), uTime*-.01), float4(pos, 1.)).xyz;
+
+	scale = abs(d.w) * .1 + .1 + sin(uTime*3.+seed.x+seed.y*80.)*.1;
+}
+
+[numthreads(8,8,1)]
+void CsBgGrid(uint3 id : SV_DispatchThreadID)
+{
+	float3 mPos = float3(0, 0, 0);
+	float mScale = 0;
+		
+	calcPosScale(float3(id), mPos, mScale);
+	
+	out_particle[id.xy] = float4(mPos, mScale);
+}

@@ -1,63 +1,6 @@
 Base path: C:/Program Files/Unity/Editor/Data
 Cmd: initializeCompiler
-Cmd: compileComputeKernel
-  api=4 insize=3648 outsize=10577 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3653 outsize=10617 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3652 outsize=10617 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3652 outsize=10617 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3594 outsize=10617 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3594 outsize=10617 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3539 outsize=10617 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3526 outsize=10477 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3483 outsize=8621 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3482 outsize=10509 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3488 outsize=8621 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3483 outsize=10509 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3484 outsize=10509 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3490 outsize=10509 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3490 outsize=10509 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3484 outsize=10509 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3484 outsize=10509 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3564 outsize=10697 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3488 outsize=10509 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3492 outsize=10509 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3489 outsize=10509 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3491 outsize=10509 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3807 outsize=10889 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3806 outsize=10889 ok=1
-Cmd: compileComputeKernel
-  error: 2 plat 4 at cs_particleCtrl.compute(57): if statement conditional expressions must evaluate to a scalar
-  api=4 insize=3810 outsize=0 ok=0
-Cmd: compileComputeKernel
-  api=4 insize=3766 outsize=10841 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3768 outsize=10841 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3766 outsize=10841 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3797 outsize=10985 ok=1
-Cmd: compileComputeKernel
-  api=4 insize=3690 outsize=10793 ok=1
+Cmd: compileSnippet
+  api=4 type=0 insize=16806 outsize=5646 kw=_SUNDISK_HIGH_QUALITY pd=UNITY_ENABLE_REFLECTION_BUFFERS UNITY_USE_DITHER_MASK_FOR_ALPHABLENDED_SHADOWS UNITY_PBS_USE_BRDF1 UNITY_SPECCUBE_BOX_PROJECTION UNITY_SPECCUBE_BLENDING UNITY_ENABLE_DETAIL_NORMALMAP SHADER_API_DESKTOP UNITY_COLORSPACE_GAMMA UNITY_LIGHT_PROBE_PROXY_VOLUME UNITY_LIGHTMAP_FULL_HDR ok=1
+Cmd: compileSnippet
+  api=4 type=1 insize=16806 outsize=442 kw=_SUNDISK_NONE pd=UNITY_ENABLE_REFLECTION_BUFFERS UNITY_USE_DITHER_MASK_FOR_ALPHABLENDED_SHADOWS UNITY_PBS_USE_BRDF1 UNITY_SPECCUBE_BOX_PROJECTION UNITY_SPECCUBE_BLENDING UNITY_ENABLE_DETAIL_NORMALMAP SHADER_API_DESKTOP UNITY_COLORSPACE_GAMMA UNITY_LIGHT_PROBE_PROXY_VOLUME UNITY_LIGHTMAP_FULL_HDR ok=1

@@ -289,8 +289,11 @@
     <Compile Include="Assets\PostProcessing\Runtime\Utils\MaterialFactory.cs" />
     <Compile Include="Assets\PostProcessing\Runtime\Utils\RenderTextureFactory.cs" />
     <Compile Include="Assets\PostProcessing\Utilities\CustomMotionTexture\ExampleWheelController.cs" />
-    <Compile Include="Assets\Scripts\BgCamera.cs" />
-    <Compile Include="Assets\Scripts\RayMarchCtrl.cs" />
+    <Compile Include="Assets\Scripts\BgGridLayer.cs" />
+    <Compile Include="Assets\Scripts\BlitBuffer.cs" />
+    <Compile Include="Assets\Scripts\PopCtrl.cs" />
+    <Compile Include="Assets\Scripts\RayMarchCtrl_ComputeShader.cs" />
+    <Compile Include="Assets\Scripts\TextureBendingMachine.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\PostProcessing\Editor Resources\Monitors\HistogramCompute.compute" />
@@ -334,12 +337,16 @@
     <None Include="Assets\PostProcessing\Resources\Shaders\Uber.shader" />
     <None Include="Assets\PostProcessing\Resources\Shaders\UberSecondPass.cginc" />
     <None Include="Assets\PostProcessing\Utilities\CustomMotionTexture\Shaders\CustomMotionVectorTexture.shader" />
-    <None Include="Assets\Resources\Shaders\BgCam.shader" />
+    <None Include="Assets\Resources\Shaders\BlitFilter.shader" />
+    <None Include="Assets\Resources\Shaders\PopInstanceMesh.shader" />
     <None Include="Assets\Resources\Shaders\SimplexNoise2D.cginc" />
     <None Include="Assets\Resources\Shaders\SimplexNoise3D.cginc" />
-    <None Include="Assets\Resources\Shaders\cs_particleCtrl.compute" />
-    <None Include="Assets\Resources\Shaders\instanceMesh.shader" />
-    <None Include="Assets\Resources\Shaders\metaBall.shader" />
+    <None Include="Assets\Resources\Shaders\bgGridInstanceMesh.shader" />
+    <None Include="Assets\Resources\Shaders\cs_bgGrid.compute" />
+    <None Include="Assets\Resources\Shaders\cs_particleCtrl_b.compute" />
+    <None Include="Assets\Resources\Shaders\cs_patternGenerator.compute" />
+    <None Include="Assets\Resources\Shaders\cs_popParticles.compute" />
+    <None Include="Assets\Resources\Shaders\cs_rayMarch.compute" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

@@ -1,0 +1,78 @@
+﻿#pragma kernel pattern0
+#pragma kernel pattern1
+#pragma kernel pattern2
+
+#include "Assets/Resources/Shaders/SimplexNoise2D.cginc"
+
+RWTexture2D<float4> Result;
+Texture2D<float4> uTexNoise;
+SamplerState sampleruTexNoise;
+float uTime;
+float2 uRes;
+
+float3 calcPolkaDots(in float2 _coords)
+{
+	float3 pattern = float3(0, 0, 0);
+
+	float2 U = _coords * uRes * .25;
+	U = (U + U - (pattern.xy = uRes)) / pattern.y * 24.;
+
+
+	float Pi = 3.14159265359,
+		t = .1 * uTime,
+		e = 15. / pattern.y, v;
+	// animation ( switch dir )
+	U = mul(
+		float2x2(sin(Pi / 3.*ceil(t / 2. / Pi) + Pi * float4(.5, 1, 0, .5)))
+		, U);
+
+	U.y /= .866;
+	U -= .5;
+	v = ceil(U.y);
+	// hexagonal tiling
+	U.x += .5*v;
+	// animation ( scissor )
+	U.x += sin(t) > 0. ? (1. - cos(t)) * (fmod(v, 2.) - .5) : 0.;
+
+	// dots
+	U = 2.*frac(U) - 1.;
+	U.y *= .866;
+	pattern += smoothstep(e, -e, length(U) - .6) - pattern;
+	pattern = 1. - pattern;
+
+	return pattern;
+}
+
+[numthreads(8,8,1)]
+void pattern0 (uint3 id : SV_DispatchThreadID)
+{
+	float2 mCoords = (float2)id.xy / uRes;
+	float4 mCol = float4(0, 0, 0, 1);
+
+	mCol.rgb = calcPolkaDots(mCoords);
+
+	Result[id.xy] = mCol;
+}
+
+[numthreads(8, 8, 1)]
+void pattern1(uint3 id : SV_DispatchThreadID)
+{
+	float2 mCoords = (float2)id.xy / uRes;
+	float4 mCol = uTexNoise.SampleLevel(
+	sampleruTexNoise, mCoords, 0);
+	mCol = normalize(mCol);
+
+	Result[id.xy] = mCol;
+}
+
+[numthreads(8, 8, 1)]
+void pattern2(uint3 id : SV_DispatchThreadID)
+{
+	float2 mCoords = (float2)id.xy / uRes;
+	
+	float seed = 10. * mCoords.y - .06 * uTime;
+	
+	float l = smoothstep(.4, .46, frac(seed));
+
+	Result[id.xy] = float4(l, l, l, 1.);
+}

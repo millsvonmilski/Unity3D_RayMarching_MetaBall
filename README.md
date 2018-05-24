@@ -1,7 +1,8 @@
 # Ray Marching Metaball in Unity3D
 <img src="https://github.com/avseoul/Unity3D_RayMarching_MetaBall/blob/master/preview0.gif" width="320">   
 <img src="https://github.com/avseoul/Unity3D_RayMarching_MetaBall/blob/master/preview1.gif" width="320">
-Playing with [Inigo Quilez's shadertoy sketch raymarching metaball](https://www.shadertoy.com/view/ld2GRz) in Unity3D. Blob's positions are driven by compute shader, there's some framedrops in high res without downsampling
+<img src="https://github.com/avseoul/Unity3D_RayMarching_MetaBall/blob/master/preview2.gif" width="320">
+Playing with [Inigo Quilez shadertoy sketch raymarching metaball](https://www.shadertoy.com/view/ld2GRz) in Unity3D.
 
 ## Process
 Check out [my medium post](https://medium.com/@avseoul/ray-marching-metaball-in-unity3d-fc6f83766c5d) 
