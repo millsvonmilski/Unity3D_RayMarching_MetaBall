@@ -230,6 +230,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 553616135}
+  - component: {fileID: 553616139}
   - component: {fileID: 553616136}
   - component: {fileID: 553616134}
   - component: {fileID: 553616137}
@@ -322,6 +323,25 @@ MonoBehaviour:
   mCs: {fileID: 7200000, guid: 8821f9264d99639469397e6a95c4d13a, type: 3}
   mMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
   mShdr: {fileID: 4800000, guid: 69acb89e1871e4441b08f89f8722b05f, type: 3}
+--- !u!114 &553616139
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 553616133}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd01697dbec49f742a0728602168a209, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mBassScaleMin: 0.245
+  mBassScaleMax: 1
+  mTrebScaleMin: 0
+  mTrebScaleMax: 0.591
+  mBass: 0.1913102
+  mTreb: 0.30975884
+  isBassHit: 0
+  isTrebHit: 1
 --- !u!1 &2048952976
 GameObject:
   m_ObjectHideFlags: 0

@@ -38,12 +38,29 @@ public class PopCtrl : MonoBehaviour {
         updateInstance();
         drawInstance();
 
+        AudioEvent();
+
         curFrame ^= 1;
     }
 
     void OnDestroy()
     {
         destroyResources();
+    }
+
+    private void AudioEvent()
+    {
+        AudioAnalyzer aa = GetComponent<AudioAnalyzer>();
+        float bass = aa.bass;
+        float treb = aa.treb;
+        bool bassHit = aa.bassHit;
+        bool trebHit = aa.trebHit;
+
+        mCs.SetFloat("uBass", bass);
+        mCs.SetFloat("uTreb", treb);
+
+        mMat.SetFloat("uBass", bass);
+        mMat.SetFloat("uTreb", treb);
     }
 
     private void updateInstance()

@@ -18,6 +18,9 @@ Check out [my medium post](https://medium.com/@avseoul/ray-marching-metaball-in-
 * [Volumetric Rendering: Surface Shading by Alan Zucconi](https://www.alanzucconi.com/2016/07/01/surface-shading/)
 * [Raymarching Distance Fields: Concepts and Implementation in Unity by Flafla2](http://flafla2.github.io/2016/10/01/raymarching.html)
 
+### audio processing 
+* [LASP - Audio Processing Unity Plugin by Keijiro Takahashi](https://github.com/keijiro/Lasp) 
+
 
 ## Dev Environment
 * Windows 10 / GeForce GTX 970

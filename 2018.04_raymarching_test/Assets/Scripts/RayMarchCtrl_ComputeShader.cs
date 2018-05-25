@@ -21,6 +21,8 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
     public bool triggerTexMode;
     public bool triggerUvMode;
 
+    private Vector3 mStayInCube = new Vector3(15f, 10f, 15f);
+
     [Header("scene")]
     public Camera mCam;
     public GameObject mLight;
@@ -100,7 +102,6 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
     private void Start()
     {
         initResources();
-        ShuffleEvent();
     }
 
     private void Update()
@@ -120,7 +121,8 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
         KeyEvent();
 
         // shuffle event
-        ShuffleEvent();
+        //ShuffleEvent();
+        AudioEvent();
 
         // update bg exposure
         updateBgExp();
@@ -169,16 +171,56 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
     private void KeyEvent()
     {
         if (Input.GetKeyUp(KeyCode.Alpha1))
-            isCenterAttracted = !isCenterAttracted;
+            ShuffleEvent();
+    }
 
-        if (Input.GetKeyUp(KeyCode.Alpha2))
-            isInsideCube = !isInsideCube;
+    private void AudioEvent()
+    {
+        AudioAnalyzer aa = GetComponent<AudioAnalyzer>();
+        float bass = aa.bass;
+        float treb = aa.treb;
+        bool bassHit = aa.bassHit;
+        bool trebHit = aa.trebHit;
 
-        if (Input.GetKeyUp(KeyCode.Alpha3))
+        if (bassHit && bass > .5f)
+        {
+            // jump scale
             triggerScaleJump = true;
 
-        if (Input.GetKeyUp(KeyCode.Alpha4))
-            triggerTexMode = !triggerTexMode;
+            //
+            triggerBgExposure = true;
+
+            //
+            if (Random.Range(0f, 1f) > 0.3f)
+                ShuffleCage();
+
+            //
+            if (Random.Range(0f, 1f) > 0.9f)
+                ShuffleCam();
+
+            //
+            isCenterAttracted = (Random.Range(0f, 1f) > 0.5f);
+
+            // texture
+            // update pattern id
+            int patternId = (int)Random.Range(0f, 3f);
+            GetComponent<TextureBendingMachine>().setPatternId(patternId);
+
+            triggerUvMode = patternId == 0 ? true : false;
+
+            // dice to trigger texture mode
+            if (Random.Range(0f, 1f) > 0.5f)
+                triggerTexMode = !triggerTexMode;
+        }
+
+        if(trebHit && treb > .5f)
+        {
+        }
+
+        mCsParticleCtrl.SetFloat("uTreb", treb);
+        mCsParticleCtrl.SetFloat("uBass", bass);
+        mCsParticleCtrl.SetBool("uTrebHit", trebHit);
+        mCsParticleCtrl.SetBool("uBassHit", bassHit);
     }
 
     private void ShuffleEvent()
@@ -187,6 +229,10 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
         {
             // jump scale
             triggerScaleJump = true;
+
+            //
+            if (Random.Range(0f, 1f) > 0.5f)
+                ShuffleCage();
 
             // update pattern id
             int patternId = (int)Random.Range(0f, 3f);
@@ -210,12 +256,19 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
         }                        
     }
 
+    private void ShuffleCage()
+    {
+        mStayInCube.x = Random.Range(0f, 10f) + 10f;
+        mStayInCube.y = Random.Range(0f, 10f) + 10f;
+        mStayInCube.z = Random.Range(0f, 10f) + 10f;
+    }
+
     private void ShuffleCam()
     {
         //
-        mCamLoc_target.x = (Random.Range(0f, 1f) * 120f + 10f);// * (Random.Range(0f, 1f) > 0.5f ? 1f : -1f);
-        mCamLoc_target.y = (Random.Range(0f, 1f) * 60f + 10f);// * (Random.Range(0f, 1f) > 0.5f ? 1f : -1f);
-        mCamLoc_target.z = (Random.Range(0f, 1f) * 120f + 10f);// * (Random.Range(0f, 1f) > 0.5f ? 1f : -1f);
+        mCamLoc_target.x = (Random.Range(0f, 1f) * 50f + 60f) * (Random.Range(0f, 1f) < 0.5f ? 1f : -1f);
+        mCamLoc_target.y = (Random.Range(0f, 1f) * 50f + 60f) * (Random.Range(0f, 1f) < 0.5f ? 1f : -1f);
+        mCamLoc_target.z = (Random.Range(0f, 1f) * 50f + 60f) * (Random.Range(0f, 1f) < 0.5f ? 1f : -1f);
     }
 
 
@@ -305,7 +358,7 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
         float dist = dir.magnitude;
         dir.Normalize();
 
-        if (dist < .25f)
+        if (dist < 1f)
         {
             mCamLoc = mCamLoc_target;
 
@@ -313,7 +366,7 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
         }
         else
         {
-            mCamLoc += dir * .25f;
+            mCamLoc += dir * dist * .005f;
         }
 
         mCam.transform.position = mCamLoc;
@@ -339,8 +392,7 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
         mCsParticleCtrl.SetBool("uTriggerScaleJump", triggerScaleJump);
         triggerScaleJump = false;
 
-        mCsParticleCtrl.SetVector("u_stay_in_cube_range", 
-            new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z));
+        mCsParticleCtrl.SetVector("u_stay_in_cube_range", mStayInCube);
 
         mCsParticleCtrl.Dispatch(
             kernel_id, numCsThreadGroup, numCsThreadGroup, 1);

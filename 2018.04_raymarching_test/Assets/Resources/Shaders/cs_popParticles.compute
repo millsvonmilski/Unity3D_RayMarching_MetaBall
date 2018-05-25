@@ -19,6 +19,8 @@ Texture2D<float4> uBlobSurface;
 float3 uTranslate;
 float3 _WorldSpaceCameraPos;
 float uExposure;
+float uBase = 0.;
+float uTreb = 0.;
 
 bool isInit;
 
@@ -40,7 +42,7 @@ void calcCollision(
 			float blobScale = data.w;
 
 			float colDist = distance(blobPos, pos) - scale - (blobScale-.16*blobScale);// metaball's threshold
-			if (colDist < .001)
+			if (colDist < .01)
 			{
 				vel += normalize(pos - blobPos) 
 					* (length(vel) + length(blobVel)) * .01;
@@ -50,14 +52,14 @@ void calcCollision(
 				collision.xyz = lerp(collision.yyy, collision.xyz, pow(uExposure, 2.));
 				collision.w += length(vel);
 
-				scale *= 1.1;
+				scale *= 1.08;
 			}
 		}
 }
 
 void resetPosLife(in float3 seed, inout float3 pos, inout float life) {
 	float4 data = snoise_grad(seed);
-	pos = data.xyz + float3(0, 100., 0);
+	pos = data.xyz + float3(0, 30. + 60. * (1.- uTreb), 0);
 	life = abs(data.w * 35.) + 1.;
 }
 
@@ -112,7 +114,7 @@ void CsPopUpdate (uint3 id : SV_DispatchThreadID)
 
 	mVel *= .96;
 	mLife -= .05;
-	mScale = clamp(mScale, 0., 1.);
+	mScale = clamp(mScale, 0., .8);
 	mScale *= min(mLife, 1.);
 	mPos += mVel;
 

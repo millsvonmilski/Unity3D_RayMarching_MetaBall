@@ -244,6 +244,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Lasp\AudioInput.cs" />
+    <Compile Include="Assets\Lasp\Internal\FilterBlock.cs" />
+    <Compile Include="Assets\Lasp\Internal\LaspStream.cs" />
+    <Compile Include="Assets\Lasp\Internal\LaspTerminator.cs" />
+    <Compile Include="Assets\Lasp\Internal\PluginEntry.cs" />
     <Compile Include="Assets\PostProcessing\Runtime\Attributes\GetSetAttribute.cs" />
     <Compile Include="Assets\PostProcessing\Runtime\Attributes\MinAttribute.cs" />
     <Compile Include="Assets\PostProcessing\Runtime\Attributes\TrackballAttribute.cs" />
@@ -289,6 +294,7 @@
     <Compile Include="Assets\PostProcessing\Runtime\Utils\MaterialFactory.cs" />
     <Compile Include="Assets\PostProcessing\Runtime\Utils\RenderTextureFactory.cs" />
     <Compile Include="Assets\PostProcessing\Utilities\CustomMotionTexture\ExampleWheelController.cs" />
+    <Compile Include="Assets\Scripts\AudioAnalyzer.cs" />
     <Compile Include="Assets\Scripts\BgGridLayer.cs" />
     <Compile Include="Assets\Scripts\BlitBuffer.cs" />
     <Compile Include="Assets\Scripts\PopCtrl.cs" />

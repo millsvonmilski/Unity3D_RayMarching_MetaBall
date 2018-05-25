@@ -308,7 +308,7 @@ void render(in float3 _pixels, inout float4 _col, inout float3 out_normal, inout
 
 				float p = 1.0 - x * x*(3.0 - 2.0*x);
 
-				m_blob_col += (pow(abs(blob_life) * 2., 4.3) * p);
+				m_blob_col += (pow(abs(blob_life) * 1., 4.3) * p);
 			}
 		}
 
@@ -346,7 +346,7 @@ void render(in float3 _pixels, inout float4 _col, inout float3 out_normal, inout
 
 		// brdf
 		float3 m_brdf = float3(1., 1., 1.);
-		calcPopRef(m_brdf, m_geometry, m_normal, m_rayOrigin);
+		//calcPopRef(m_brdf, m_geometry, m_normal, m_rayOrigin);
 
 		m_brdf += .6 * m_amb * m_blob_col * m_occ;
 		m_brdf += 1. * m_dif * m_blob_col 

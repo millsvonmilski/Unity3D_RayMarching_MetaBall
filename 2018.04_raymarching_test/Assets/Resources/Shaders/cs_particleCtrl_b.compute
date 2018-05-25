@@ -19,6 +19,10 @@ bool uIsInsideCube;
 bool uTriggerScaleJump;
 float u_time_delta;
 float u_time;
+float uTreb = 0.;
+float uBass = 0.;
+bool uTrebHit = false;
+bool uBassHit = false;
 float u_blob_scale_factor;
 float3 u_stay_in_cube_range;
 // -
@@ -38,7 +42,7 @@ float4 reset_vel_and_scale(in float3 _seed)
 {
 	float4 _data = snoise_grad(_seed * 1234.5678);
 	float3 vel = _data.xyz * 2.4;
-	float scale = length((vel * .8) * u_blob_scale_factor) + 1.;
+	float scale = length((vel * 1.8) * u_blob_scale_factor) + 2.;
 
 	return float4(vel, scale);
 }
@@ -60,10 +64,10 @@ void calcGravity(inout float3 _vel, in float3 _pos, inout float _scale)
 	if (_dist > .5)
 	{
 		float3 _dir = normalize(-_pos);
-		float3 _f = _dir * _scale / (_dist * _dist) * .6;
+		float3 _f = _dir * _scale / (_dist * _dist) * .8;
 		_vel += _f;
 
-		_scale += length(_f)*.04;
+		_scale += length(_f)*.06;
 	}
 }
 
@@ -71,8 +75,14 @@ void jumpScale(inout float _scale, inout float _life, inout float3 _vel, in floa
 {
 	float4 _data = snoise_grad((_vel * 123.456 + _pos * 901.234) );
 	_vel = _data.xyz * 12.4;
-	_scale = length((_vel * .25) * u_blob_scale_factor) + 1.;
+	_scale = length((_vel * .28) * u_blob_scale_factor) + 2.;
 	_life = abs(_data.w * 20. + 1.);
+}
+
+void jumpLife(in float _scale, inout float _life, in float3 _vel, in float3 _pos)
+{
+	float rand = snoise((_vel * 123.456 + _pos * 901.234));
+	_life = abs(pow(rand, 4.) * 20.) + 1.;
 }
 
 void stay_in_cube(inout float3 _pos, in float _scale, inout float3 _vel)
@@ -161,6 +171,9 @@ void cs_update_buffers(uint3 global_id : SV_DispatchThreadID, uint3 local_id : S
 	if (uTriggerScaleJump)
 		jumpScale(m_scale, m_life, m_vel, m_pos);
 
+	if (uTrebHit)
+		jumpLife(m_scale, m_life, m_vel, m_pos);
+
 	// update data 
 
 	m_vel *= .99;
@@ -169,7 +182,7 @@ void cs_update_buffers(uint3 global_id : SV_DispatchThreadID, uint3 local_id : S
 	m_scale *= min(m_life * 15., 1.);
 	m_scale = max(m_scale, .01);
 
-	m_pos += m_vel * u_time_delta * .5;
+	m_pos += m_vel * u_time_delta * .25 + (uBass + uTreb)*.5*.25 ;
 	
 	// out data
 	out_pos_and_life[global_id.xy] = float4(m_pos, m_life);

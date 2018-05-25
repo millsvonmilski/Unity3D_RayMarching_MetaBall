@@ -4,7 +4,8 @@
 	}
 	SubShader {
 		Pass{
-			Tags { "LightMode" = "ForwardBase" }
+			Tags { "LightMode" = "ForwardBase" "Queue" = "Transparent" }
+			Blend SrcAlpha OneMinusSrcAlpha
 
 			CGPROGRAM
 
@@ -30,6 +31,8 @@
 	sampler2D uRayMarchingDepth;
 	float u_time;
 	float uBgExposure;
+	float uBass = 0.;
+	float uTreb = 0.;
 	// -
 
 	struct v2f
@@ -126,7 +129,7 @@
 			float3 mCollision = i.collision.xyz * i.collision.w;
 			//float3 mEnvMap = pow(max(uCube.SampleLevel(sampleruCube, i.reflect, 0).ggg, 0.), 4.2)
 			//	* i.fillFresnel.w + mCollision;
-			float3 albedo = pow(i.velLife.w, 4.) * .5;
+			float3 albedo = pow(i.velLife.w, 4.) * (uBass+uTreb);
 
 			float mExposure = pow(uBgExposure, 2.);
 
