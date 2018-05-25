@@ -253,7 +253,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83188523478a08440870675c8b3eb1cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isCenterAttracted: 0
+  isCenterAttracted: 1
   isInsideCube: 1
   triggerScaleJump: 0
   triggerBgExposure: 0
@@ -334,13 +334,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd01697dbec49f742a0728602168a209, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mBassScaleMin: 0.195
+  mBassScaleMin: 0.374
   mBassScaleMax: 0.678
-  mTrebScaleMin: 0.2
+  mTrebScaleMin: 0.259
   mTrebScaleMax: 0.684
-  mBass: 0.19206752
-  mTreb: 0.028158223
-  isBassHit: 1
+  mBass: 0
+  mTreb: 0
+  isBassHit: 0
   isTrebHit: 0
 --- !u!1 &2048952976
 GameObject:

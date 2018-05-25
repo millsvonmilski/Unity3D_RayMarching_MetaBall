@@ -1,6 +1,6 @@
 WindowsStandalone
 PlayerPath?
-C:/Users/avseoul/Desktop/23Mar2018_avseoul_raymarching_metabll_wip.exe
+C:/Users/avseoul/Dropbox/23Mar2018_avseoul_raymarching_metabll_wip_Data/23Mar2018_avseoul_raymarching_metabll_wip.exe
 SceneListBegin?
 Assets/Scenes/ComputeShaderRayMarching.unity
 SceneListEnd?

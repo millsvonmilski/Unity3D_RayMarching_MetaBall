@@ -1,2 +1,19 @@
 Base path: C:/Program Files/Unity/Editor/Data
 Cmd: initializeCompiler
+Cmd: compileComputeKernel
+  api=4 insize=4585 outsize=22933 ok=1
+Cmd: compileComputeKernel
+  error: 2 plat 4 at cs_particleCtrl_b.compute(82): syntax error: unexpected token '_life'
+  api=4 insize=4638 outsize=0 ok=0
+Cmd: compileComputeKernel
+  api=4 insize=3083 outsize=19237 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=4642 outsize=22989 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=4677 outsize=23021 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=4665 outsize=22993 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=4669 outsize=23001 ok=1
+Cmd: compileSnippet
+  api=4 type=1 insize=3223 outsize=1322 kw=DIRECTIONAL SHADOWS_SCREEN LIGHTPROBE_SH pd=UNITY_ENABLE_REFLECTION_BUFFERS UNITY_USE_DITHER_MASK_FOR_ALPHABLENDED_SHADOWS UNITY_PBS_USE_BRDF1 UNITY_SPECCUBE_BOX_PROJECTION UNITY_SPECCUBE_BLENDING UNITY_ENABLE_DETAIL_NORMALMAP SHADER_API_DESKTOP UNITY_COLORSPACE_GAMMA UNITY_LIGHT_PROBE_PROXY_VOLUME UNITY_LIGHTMAP_FULL_HDR ok=1

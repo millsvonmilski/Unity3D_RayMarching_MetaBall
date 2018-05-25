@@ -1,2 +1,10 @@
 Base path: C:/Program Files/Unity/Editor/Data
 Cmd: initializeCompiler
+Cmd: compileComputeKernel
+  api=4 insize=4645 outsize=22889 ok=1
+Cmd: compileComputeKernel
+  api=4 insize=4665 outsize=22993 ok=1
+Cmd: compileComputeKernel
+  error: 1 plat 4 at cs_rayMarch.compute(223): implicit truncation of vector type
+  error: 1 plat 4 at cs_rayMarch.compute(332): implicit truncation of vector type
+  api=4 insize=12001 outsize=9929 ok=1

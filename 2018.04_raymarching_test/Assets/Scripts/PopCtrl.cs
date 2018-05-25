@@ -9,7 +9,7 @@ public class PopCtrl : MonoBehaviour {
     private RenderTexture[] mCsBuf_velScale;
     private RenderTexture[] mCsBuf_collision;
 
-    private int bufSizeSqrt = 80;
+    private int bufSizeSqrt = 40;
 
     public Mesh mMesh;
     public Shader mShdr;

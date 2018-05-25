@@ -7,7 +7,7 @@ public class BgGridLayer : MonoBehaviour
     public ComputeShader mCs;
     private RenderTexture mCsBuf_particle;
 
-    private int bufSizeSqrt = 80;
+    private int bufSizeSqrt = 40;
 
     public Mesh mMesh;
     public Shader mShdr;

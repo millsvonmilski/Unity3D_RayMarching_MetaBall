@@ -74,9 +74,13 @@ void calcGravity(inout float3 _vel, in float3 _pos, inout float _scale)
 void jumpScale(inout float _scale, inout float _life, inout float3 _vel, in float3 _pos)
 {
 	float4 _data = snoise_grad((_vel * 123.456 + _pos * 901.234) );
-	_vel = _data.xyz * 12.4;
-	_scale = length((_vel * .42) * u_blob_scale_factor) + 2.;
-	_life = abs(_data.w * 20. + 1.);
+	float factor = ((uBass - .5)*2.);
+	float3 nv = _data.xyz * 12.4;
+	_vel = lerp(_vel, nv, factor);
+	float ns = length((_data.xyz * 12.4 * .42) * u_blob_scale_factor) + 2.;
+	_scale = lerp(_scale, ns, factor);
+	float nl = abs(_data.w * 20. + 1.);
+	_life = lerp(_life, nl, factor);
 }
 
 void jumpLife(in float _scale, inout float _life, in float3 _vel, in float3 _pos)
@@ -182,7 +186,7 @@ void cs_update_buffers(uint3 global_id : SV_DispatchThreadID, uint3 local_id : S
 	m_scale *= min(m_life * 15., 1.);
 	m_scale = max(m_scale, .01);
 
-	m_pos += m_vel * u_time_delta * (.2 + (uBass + uTreb)*.5);
+	m_pos += m_vel * u_time_delta * (.1 + (uBass + uTreb));
 	
 	// out data
 	out_pos_and_life[global_id.xy] = float4(m_pos, m_life);

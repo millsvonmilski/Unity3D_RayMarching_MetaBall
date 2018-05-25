@@ -19,14 +19,14 @@ Texture2D<float4> uBlobSurface;
 float3 uTranslate;
 float3 _WorldSpaceCameraPos;
 float uExposure;
-float uBase = 0.;
+float uBass = 0.;
 float uTreb = 0.;
 
 bool isInit;
 
 void calcCollision(
 	inout float4 collision,
-	in float3 pos,
+	inout float3 pos,
 	inout float3 vel,
 	in float life,
 	inout float scale)
@@ -42,15 +42,16 @@ void calcCollision(
 			float blobScale = data.w;
 
 			float colDist = distance(blobPos, pos) - scale - blobScale;
-			if (colDist < .1)
+			if (colDist < .0001)
 			{
+				vel *= .6;
 				vel += normalize(pos - blobPos) 
-					* (length(vel) + length(blobVel)) * .01;
+					* (length(vel) + length(blobVel)) * .04;
 
 				collision.xyz += vel;
 				collision.xyz = normalize(collision.xyz);
-				collision.xyz = lerp(collision.yyy, collision.xyz, pow(uExposure, 2.));
-				collision.w += length(vel) * .1;
+				//collision.xyz = lerp(collision.yyy, collision.xyz, pow(uExposure, 2.));
+				collision.w += length(vel) * .5;
 
 				scale *= 1.1;
 			}
@@ -59,14 +60,14 @@ void calcCollision(
 
 void resetPosLife(in float3 seed, inout float3 pos, inout float life) {
 	float4 data = snoise_grad(seed);
-	pos = data.xyz + float3(0, 80. + 40. * (1.- uTreb), 0);
-	life = abs(data.w * 15.) + 1.;
+	pos = data.xyz + float3(0, 40. + 40. * (1.- uTreb), 0);
+	life = abs(data.w * 8.) + 1.;
 }
 
 void resetVelScale(in float3 seed, inout float3 vel, inout float scale) {
 	float4 data = snoise_grad(seed);
 	vel = data.xyz * .5;
-	scale = abs(data.w * .5) + .1;
+	scale = abs(data.w * 1.2) + .1;
 }
 
 void revive(
@@ -114,7 +115,7 @@ void CsPopUpdate (uint3 id : SV_DispatchThreadID)
 
 	mVel *= .96;
 	mLife -= .05;
-	mScale = clamp(mScale, 0., 1.);
+	mScale = clamp(mScale, 0., pow(uTreb+uBass,2.)*.5+.3);
 	mScale *= min(mLife, 1.);
 	mPos += mVel;
 

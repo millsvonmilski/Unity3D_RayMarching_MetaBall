@@ -24,11 +24,11 @@ float4x4 rotationMatrix(float3 axis, float angle)
 
 void calcPosScale(in float3 seed, inout float3 pos, inout float scale) {
 	float4 d = (snoise_grad(seed * 1234.5678) - .5) * 2.;
-	pos = float3(d.x, d.y, d.z) * 30. + 50.;
+	pos = normalize(float3(d.x, d.y, d.z)) * (20. + length(float3(d.x, d.y, d.z))*20.);
 
 	pos = mul(rotationMatrix(float3(0, 1, 0), uTime*-.05), float4(pos, 1.)).xyz;
 
-	scale = abs(d.w) * .1 + .05 + sin(uTime*3.+seed.x+seed.y*80.)*.05 + pow(d.w, 3.)*uTreb*.1;
+	scale = abs(d.w) * .2 + .1 + sin(uTime*3.+seed.x+seed.y*80.)*pow(d.w, 1.)*uTreb*.1;
 }
 
 [numthreads(8,8,1)]

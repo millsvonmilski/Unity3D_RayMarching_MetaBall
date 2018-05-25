@@ -209,22 +209,22 @@ float calcShadow(in float3 _rayOrigin, in float3 _rayDirection, float _mint, flo
 
 void calcPopRef(inout float3 col, in float3 surface, in float3 normal, in float3 eye) 
 {
-	if (pow(1. - uBgExposure, 2.) > .9)
+	if (uBgExposure < .2)
 	{
 		uint i, j;
-		for (i = 0; i < 80; i += 2)
-			for (j = 0; j < 80; j += 2)
+		for (i = 0; i < 40; i += 1)
+			for (j = 0; j < 40; j += 1)
 			{
 				uint3 coord = uint3(i, j, 0);
 				float4 popCol = uPopCollision.Load(coord);
 				float3 popColor = popCol.rgb;
 				float popColFactor = popCol.a;
 
-				if (popColFactor > 0.)
+				if (popColFactor > 1.)
 				{
 					float3 popPos = uPopPosLife.Load(coord);
 					float dist = distance(popPos, surface);
-					float maxDist = 30.;
+					float maxDist = 15.;
 
 					if (dist < maxDist)
 					{
@@ -233,10 +233,10 @@ void calcPopRef(inout float3 col, in float3 surface, in float3 normal, in float3
 						float3 s2C = normalize(eye - surface);
 
 						float diffuse = max(0.0, dot(normal, -l2S));
-						float spec = pow(max(0.0, dot(s2C, reflect(l2S, normal))), 3.);
+						float spec = pow(max(0.0, dot(s2C, reflect(l2S, normal))), 14.);
 
 						if (diffuse > 0.) {
-							col += max(spec * popColor * (maxDist - dist) / maxDist * popColFactor * 2., 0.);
+							col += max(spec * popColor * (maxDist - dist) / maxDist * popColFactor * 115., 0.);
 						}
 					}
 				}
@@ -361,6 +361,7 @@ void render(in float3 _pixels, inout float4 _col, inout float3 out_normal, inout
 
 		// surface-light interacion
 		m_col = m_brdf * m_material;
+		m_col = clamp(m_col, 0, 500.);
 
 		// fog 
 		/*m_col = lerp(m_col, _col.rgb, 

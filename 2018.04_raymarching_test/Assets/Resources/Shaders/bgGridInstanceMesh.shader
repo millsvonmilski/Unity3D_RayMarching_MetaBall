@@ -48,7 +48,7 @@
 	v2f vert(appdata_full v, uint instanceID : SV_InstanceID)
 	{
 #if SHADER_TARGET >= 45
-			float _buf_size = 80;
+			float _buf_size = 40;
 			int3 _buf_uv = int3(
 				instanceID % (int)_buf_size,
 				(int)((float)instanceID / _buf_size),
@@ -66,8 +66,8 @@
 			float3 m_fill = float3(0, -1, 0);
 			float3 color = float3(1., 1., 1.);
 
-			float3 ambient = 0.8 + 0.2 * worldNormal.y;
-			float3 diffuse = max(dot(worldNormal, m_light), 0.0);
+			float3 ambient = 0.8 + 0.2 * worldNormal.y * scale;
+			float3 diffuse = max(dot(worldNormal, m_light), 0.0) * scale;
 			float3 m_fil = max(dot(worldNormal, m_fill), 0.0);
 
 			float m_fre = pow(clamp(1.0 + dot(worldNormal, rayDir), 0.0, 1.0), 2.0);
@@ -93,7 +93,7 @@
 			float curDepth = distance(_WorldSpaceCameraPos, i.worldPos);
 
 			float alpha = rmDepth < curDepth ? 0. : 1.;
-			float3 albedo = float3(1, 1, 1);
+			float3 albedo = float3(1, 1, 1) + pow((uBass+uTreb), 3.)*2.;
 
 			float mExposure = pow(uBgExposure, 2.);
 
@@ -107,7 +107,7 @@
 			mCol = pow(max(mCol, 0.), 0.45);
 
 			alpha = lerp(alpha, 0,
-				clamp(1.0 - 1.2 * exp(-0.00005 * curDepth*curDepth), 0.0, 1.0));
+				clamp(1.0 - 1.2 * exp(-0.00001 * curDepth*curDepth), 0.0, 1.0));
 
 			alpha *= mExposure;
 

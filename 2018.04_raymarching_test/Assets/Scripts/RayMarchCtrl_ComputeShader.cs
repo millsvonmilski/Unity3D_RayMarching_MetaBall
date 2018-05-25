@@ -21,7 +21,7 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
     public bool triggerTexMode;
     public bool triggerUvMode;
 
-    private Vector3 mStayInCube = new Vector3(15f, 10f, 15f);
+    private Vector3 mStayInCube = new Vector3(25f, 20f, 25f);
 
     [Header("scene")]
     public Camera mCam;
@@ -184,18 +184,14 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
 
         mBgExposure_target = Mathf.Pow(1f - bass, 3f);
 
-        if (bassHit && bass > .65f)
+        if (bassHit && bass > .5f)
         {
             // jump scale
             triggerScaleJump = (Random.Range(0f, 1f) > 0.5f);
 
             //
-            if (Random.Range(0f, 1f) > 0.8f)
-                ShuffleCage();
-
-            //
-            if (Random.Range(0f, 1f) > 0.9f)
-                ShuffleCam();
+            //if (Random.Range(0f, 1f) > 0.8f)
+            //    ShuffleCage();
 
             //
             isCenterAttracted = (Random.Range(0f, 1f) > 0.75f);
@@ -268,11 +264,31 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
     private void ShuffleCam()
     {
         //
-        mCamLoc_target.x = (Random.Range(0f, 1f) * 50f + 80f);// * (Random.Range(0f, 1f) < 0.5f ? 1f : -1f);
-        mCamLoc_target.y = (Random.Range(0f, 1f) * 50f + 80f);// * (Random.Range(0f, 1f) < 0.5f ? 1f : -1f);
-        mCamLoc_target.z = (Random.Range(0f, 1f) * 50f + 80f);// * (Random.Range(0f, 1f) < 0.5f ? 1f : -1f);
+        mCamLoc_target.x = (Random.Range(0f, 1f) * 80f + 50f);// * (Random.Range(0f, 1f) < 0.5f ? 1f : -1f);
+        mCamLoc_target.y = (Random.Range(0f, 1f) * 80f + 50f);// * (Random.Range(0f, 1f) < 0.5f ? 1f : -1f);
+        mCamLoc_target.z = (Random.Range(0f, 1f) * 80f + 50f);// * (Random.Range(0f, 1f) < 0.5f ? 1f : -1f);
     }
 
+    private void update_camera()
+    {
+        Vector3 dir = mCamLoc_target - mCamLoc;
+        float dist = dir.magnitude;
+        dir.Normalize();
+
+        if (dist < 0.1f)
+        {
+            mCamLoc = mCamLoc_target;
+
+            ShuffleCam();
+        }
+        else
+        {
+            mCamLoc += dir * dist * .02f;
+        }
+
+        mCam.transform.position = mCamLoc;
+        mCam.transform.LookAt(transform.position, Vector3.up);
+    }
 
     // Custom Functions
     // 
@@ -352,27 +368,6 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
         
         mCsParticleCtrl.Dispatch(
             kernel_id, numCsThreadGroup, numCsThreadGroup, 1);
-    }
-
-    private void update_camera()
-    {
-        Vector3 dir = mCamLoc_target - mCamLoc;
-        float dist = dir.magnitude;
-        dir.Normalize();
-
-        if (dist < 1f)
-        {
-            mCamLoc = mCamLoc_target;
-
-            ShuffleCam();
-        }
-        else
-        {
-            mCamLoc += dir * dist * .005f;
-        }
-
-        mCam.transform.position = mCamLoc;
-        mCam.transform.LookAt(transform.position, Vector3.up);
     }
 
     private void updateCsParticleCtrl()

@@ -68,7 +68,7 @@
 	v2f vert(appdata_full v, uint instanceID : SV_InstanceID)
 	{
 #if SHADER_TARGET >= 45
-			float _buf_size = 80;
+			float _buf_size = 40;
 			int3 _buf_uv = int3(
 				instanceID % (int)_buf_size,
 				(int)((float)instanceID / _buf_size),
@@ -141,6 +141,7 @@
 			m_brdf *= i.fillFresnel.w * albedo;
 
 			float3 mCol = mCollision * m_brdf * mEnvMap;
+			mCol = clamp(mCol, 0, 500.);
 			mCol = pow(max(mCol, 0.), 0.45);
 
 			alpha *= mExposure;
