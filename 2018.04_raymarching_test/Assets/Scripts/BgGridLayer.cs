@@ -24,6 +24,7 @@ public class BgGridLayer : MonoBehaviour
 
     void Update()
     {
+        AudioEvent();
         updateInstance();
         drawInstance();
     }
@@ -31,6 +32,20 @@ public class BgGridLayer : MonoBehaviour
     void OnDestroy()
     {
         destroyResources();
+    }
+
+    private void AudioEvent()
+    {
+        AudioAnalyzer aa = GetComponent<AudioAnalyzer>();
+        float bass = aa.bass;
+        float treb = aa.treb;
+        bool bassHit = aa.bassHit;
+        bool trebHit = aa.trebHit;
+
+        mCs.SetFloat("uTreb", treb);
+        mCs.SetFloat("uBass", bass);
+        mMat.SetFloat("uTreb", treb);
+        mMat.SetFloat("uBass", bass);
     }
 
     private void updateInstance()

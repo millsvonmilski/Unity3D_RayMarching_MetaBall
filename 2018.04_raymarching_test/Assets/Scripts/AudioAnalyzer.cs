@@ -50,18 +50,18 @@ public class AudioAnalyzer : MonoBehaviour {
         isBassHit = false;
         isTrebHit = false;
 
-        float cBass = Mathf.Clamp(Lasp.AudioInput.CalculateRMS(Lasp.FilterType.LowPass) * 100f, 0f, 1f);
-        float cTreb = Mathf.Clamp(Lasp.AudioInput.CalculateRMS(Lasp.FilterType.HighPass) * 100f, 0f, 1f);
+        float cBass = ((256f + Lasp.AudioInput.CalculateRMSDecibel(Lasp.FilterType.LowPass)) / 256f - .5f) * 2f;
+        float cTreb = ((256f + Lasp.AudioInput.CalculateRMSDecibel(Lasp.FilterType.HighPass)) / 256f - .5f) * 2f;
         cBass = normalizeRange(cBass, mBassScaleMin, mBassScaleMax);
         cTreb = normalizeRange(cTreb, mTrebScaleMin, mTrebScaleMax);
 
         if (cBass > pBass) { mBass = cBass; isBassHit = true; }
         if (cTreb > pTreb) { mTreb = cTreb; isTrebHit = true; }
 
-        if (mBass > 0.01f) mBass *= 0.99f;
+        if (mBass > 0.01f) mBass *= 0.96f;
         else mBass = 0f;
 
-        if (mTreb > 0.01f) mTreb *= 0.99f;
+        if (mTreb > 0.01f) mTreb *= 0.96f;
         else mTreb = 0f;
 
         pBass = cBass;

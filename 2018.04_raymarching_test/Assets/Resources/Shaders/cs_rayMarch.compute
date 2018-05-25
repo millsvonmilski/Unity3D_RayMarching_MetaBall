@@ -236,7 +236,7 @@ void calcPopRef(inout float3 col, in float3 surface, in float3 normal, in float3
 						float spec = pow(max(0.0, dot(s2C, reflect(l2S, normal))), 3.);
 
 						if (diffuse > 0.) {
-							col += spec * popColor * (maxDist - dist) / maxDist * popColFactor * 2.;
+							col += max(spec * popColor * (maxDist - dist) / maxDist * popColFactor * 2., 0.);
 						}
 					}
 				}
@@ -308,7 +308,7 @@ void render(in float3 _pixels, inout float4 _col, inout float3 out_normal, inout
 
 				float p = 1.0 - x * x*(3.0 - 2.0*x);
 
-				m_blob_col += (pow(abs(blob_life) * 1., 4.3) * p);
+				m_blob_col += (pow(abs(blob_life) * .9, 4.3) * p);
 			}
 		}
 
@@ -325,7 +325,7 @@ void render(in float3 _pixels, inout float4 _col, inout float3 out_normal, inout
 		// environmental map 
 		float3 mEnvMap =
 			pow(max(uCube_radiance.SampleLevel(sampleruCube_radiance, m_reflect, 0).ggg, 0.), 4.2)
-			* pow(m_fre, 2.) *.9995 + .0005;
+			* pow(m_fre, 2.) *.9991 + .0001;
 
 		// material
 		float3 m_material = mEnvMap;
@@ -346,13 +346,13 @@ void render(in float3 _pixels, inout float4 _col, inout float3 out_normal, inout
 
 		// brdf
 		float3 m_brdf = float3(1., 1., 1.);
-		//calcPopRef(m_brdf, m_geometry, m_normal, m_rayOrigin);
+		calcPopRef(m_brdf, m_geometry, m_normal, m_rayOrigin);
 
-		m_brdf += .6 * m_amb * m_blob_col * m_occ;
+		m_brdf += .6 * m_amb * m_blob_col * m_occ * uBgExposure;
 		m_brdf += 1. * m_dif * m_blob_col 
 			* pow(float3(m_sha, m_sha, m_sha), 1.);
 		m_brdf += 45.6 * pow(m_dif, 24.) * m_blob_col * m_occ;
-		m_brdf += .3 * m_fil * m_blob_col * m_occ;
+		m_brdf += .1 * m_fil * m_blob_col * m_occ;
 		m_brdf += .3 * m_fre * m_blob_col * m_occ * (0.2 + 0.8 * m_sha);
 		
 		m_brdf += 2999. * m_occ * m_lightCol *
@@ -363,8 +363,8 @@ void render(in float3 _pixels, inout float4 _col, inout float3 out_normal, inout
 		m_col = m_brdf * m_material;
 
 		// fog 
-		m_col = lerp(m_col, _col.rgb, 
-			clamp(1.0 - 1.2 * exp(-0.00005 * m_rayMarch.x*m_rayMarch.x), 0.0, 1.0));
+		/*m_col = lerp(m_col, _col.rgb, 
+			clamp(1.0 - 1.2 * exp(-0.00005 * m_rayMarch.x*m_rayMarch.x), 0.0, 1.0));*/
 
 		_col.a = m_distanceMap;
 	}

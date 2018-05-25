@@ -41,8 +41,8 @@ void calcCollision(
 			float3 blobVel = data.xyz;
 			float blobScale = data.w;
 
-			float colDist = distance(blobPos, pos) - scale - (blobScale-.16*blobScale);// metaball's threshold
-			if (colDist < .01)
+			float colDist = distance(blobPos, pos) - scale - blobScale;
+			if (colDist < .1)
 			{
 				vel += normalize(pos - blobPos) 
 					* (length(vel) + length(blobVel)) * .01;
@@ -50,23 +50,23 @@ void calcCollision(
 				collision.xyz += vel;
 				collision.xyz = normalize(collision.xyz);
 				collision.xyz = lerp(collision.yyy, collision.xyz, pow(uExposure, 2.));
-				collision.w += length(vel);
+				collision.w += length(vel) * .1;
 
-				scale *= 1.08;
+				scale *= 1.1;
 			}
 		}
 }
 
 void resetPosLife(in float3 seed, inout float3 pos, inout float life) {
 	float4 data = snoise_grad(seed);
-	pos = data.xyz + float3(0, 30. + 60. * (1.- uTreb), 0);
-	life = abs(data.w * 35.) + 1.;
+	pos = data.xyz + float3(0, 80. + 40. * (1.- uTreb), 0);
+	life = abs(data.w * 15.) + 1.;
 }
 
 void resetVelScale(in float3 seed, inout float3 vel, inout float scale) {
 	float4 data = snoise_grad(seed);
-	vel = data.xyz * .3;
-	scale = abs(data.w * .1) + .1;
+	vel = data.xyz * .5;
+	scale = abs(data.w * .5) + .1;
 }
 
 void revive(
@@ -114,7 +114,7 @@ void CsPopUpdate (uint3 id : SV_DispatchThreadID)
 
 	mVel *= .96;
 	mLife -= .05;
-	mScale = clamp(mScale, 0., .8);
+	mScale = clamp(mScale, 0., 1.);
 	mScale *= min(mLife, 1.);
 	mPos += mVel;
 

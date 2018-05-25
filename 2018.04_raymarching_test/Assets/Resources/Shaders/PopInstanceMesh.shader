@@ -125,25 +125,27 @@
 			float curDepth = distance(_WorldSpaceCameraPos, i.worldPos);
 
 			float alpha = rmDepth < curDepth ? 0. : 1.;
+			alpha *= clamp(i.collision.w, 0, 1);
 
 			float3 mCollision = i.collision.xyz * i.collision.w;
-			//float3 mEnvMap = pow(max(uCube.SampleLevel(sampleruCube, i.reflect, 0).ggg, 0.), 4.2)
-			//	* i.fillFresnel.w + mCollision;
-			float3 albedo = pow(i.velLife.w, 4.) * (uBass+uTreb);
+			float3 mEnvMap = pow(max(uCube.SampleLevel(sampleruCube, i.reflect, 0).ggg, 0.), 4.2)
+				* i.fillFresnel.w + mCollision;
+			float albedo = pow(i.velLife.w, 4.) * (uBass + uTreb)*.1;
 
 			float mExposure = pow(uBgExposure, 2.);
 
 			float3 m_brdf = albedo * mExposure;
-			m_brdf += .6 * i.ambient * albedo * mExposure;
-			m_brdf += 1. * i.diffuse * albedo;
-			m_brdf += 1.3 * i.fillFresnel.rgb * albedo;
-			m_brdf += 3. * i.fillFresnel.w * albedo;
+			//m_brdf += .2 * i.ambient * albedo * mExposure;
+			//m_brdf += 3. * i.diffuse * albedo;
+			//m_brdf += .3 * i.fillFresnel.rgb * albedo;
+			m_brdf *= i.fillFresnel.w * albedo;
 
-			float3 mCol = mCollision * m_brdf * mExposure;
+			float3 mCol = mCollision * m_brdf * mEnvMap;
 			mCol = pow(max(mCol, 0.), 0.45);
 
-			alpha = lerp(alpha, 0,
-				clamp(1.0 - 1.2 * exp(-0.0002 * curDepth*curDepth), 0.0, 1.0));
+			alpha *= mExposure;
+			//alpha = lerp(alpha, 0,
+				//clamp(1.0 - 1.2 * exp(-0.00001 * curDepth*curDepth), 0.0, 1.0));
 
 
 			float4 output = float4(mCol, alpha);

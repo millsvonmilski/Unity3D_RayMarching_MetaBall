@@ -18,6 +18,8 @@
 	#include "UnityLightingCommon.cginc"
 	#include "AutoLight.cginc"
 
+#include "Assets/Resources/Shaders/SimplexNoise3D.cginc"
+
 			sampler2D _MainTex;
 
 	// uniforms
@@ -25,6 +27,8 @@
 	Texture2D uCsBufParticle;
 	sampler2D uRayMarchingDepth;
 	float uTime;
+	float uTreb;
+	float uBass;
 	float uBgExposure;
 	// -
 
@@ -94,16 +98,18 @@
 			float mExposure = pow(uBgExposure, 2.);
 
 			float3 m_brdf = albedo;
-			m_brdf += .6 * i.ambient * albedo;
-			m_brdf += 1. * i.diffuse * albedo;
-			m_brdf += 1.3 * i.fillFresnel.rgb * albedo;
-			m_brdf += 1. * i.fillFresnel.w * albedo;
+			m_brdf += .2 * i.ambient * albedo;
+			//m_brdf += 1. * i.diffuse * albedo;
+			//m_brdf += .3 * i.fillFresnel.rgb * albedo;
+			m_brdf *= i.fillFresnel.w;
 
-			float3 mCol = m_brdf * mExposure;
+			float3 mCol = m_brdf;
 			mCol = pow(max(mCol, 0.), 0.45);
 
 			alpha = lerp(alpha, 0,
 				clamp(1.0 - 1.2 * exp(-0.00005 * curDepth*curDepth), 0.0, 1.0));
+
+			alpha *= mExposure;
 
 			float4 output = float4(mCol, alpha);
 			return output;

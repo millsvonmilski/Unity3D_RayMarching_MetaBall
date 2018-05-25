@@ -182,16 +182,15 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
         bool bassHit = aa.bassHit;
         bool trebHit = aa.trebHit;
 
-        if (bassHit && bass > .5f)
+        mBgExposure_target = Mathf.Pow(1f - bass, 3f);
+
+        if (bassHit && bass > .65f)
         {
             // jump scale
-            triggerScaleJump = true;
+            triggerScaleJump = (Random.Range(0f, 1f) > 0.5f);
 
             //
-            triggerBgExposure = true;
-
-            //
-            if (Random.Range(0f, 1f) > 0.3f)
+            if (Random.Range(0f, 1f) > 0.8f)
                 ShuffleCage();
 
             //
@@ -199,17 +198,20 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
                 ShuffleCam();
 
             //
-            isCenterAttracted = (Random.Range(0f, 1f) > 0.5f);
+            isCenterAttracted = (Random.Range(0f, 1f) > 0.75f);
 
             // texture
             // update pattern id
-            int patternId = (int)Random.Range(0f, 3f);
-            GetComponent<TextureBendingMachine>().setPatternId(patternId);
+            if (Random.Range(0f, 1f) > 0.75f)
+            {
+                int patternId = (int)Random.Range(0f, 3f);
+                GetComponent<TextureBendingMachine>().setPatternId(patternId);
 
-            triggerUvMode = patternId == 0 ? true : false;
+                triggerUvMode = patternId == 0 ? true : false;
+            }
 
             // dice to trigger texture mode
-            if (Random.Range(0f, 1f) > 0.5f)
+            if (Random.Range(0f, 1f) > 0.9f)
                 triggerTexMode = !triggerTexMode;
         }
 
@@ -258,17 +260,17 @@ public class RayMarchCtrl_ComputeShader : MonoBehaviour {
 
     private void ShuffleCage()
     {
-        mStayInCube.x = Random.Range(0f, 10f) + 10f;
-        mStayInCube.y = Random.Range(0f, 10f) + 10f;
-        mStayInCube.z = Random.Range(0f, 10f) + 10f;
+        mStayInCube.x = Random.Range(0f, 40f) + 10f;
+        mStayInCube.y = Random.Range(0f, 40f) + 10f;
+        mStayInCube.z = Random.Range(0f, 40f) + 10f;
     }
 
     private void ShuffleCam()
     {
         //
-        mCamLoc_target.x = (Random.Range(0f, 1f) * 50f + 60f) * (Random.Range(0f, 1f) < 0.5f ? 1f : -1f);
-        mCamLoc_target.y = (Random.Range(0f, 1f) * 50f + 60f) * (Random.Range(0f, 1f) < 0.5f ? 1f : -1f);
-        mCamLoc_target.z = (Random.Range(0f, 1f) * 50f + 60f) * (Random.Range(0f, 1f) < 0.5f ? 1f : -1f);
+        mCamLoc_target.x = (Random.Range(0f, 1f) * 50f + 80f);// * (Random.Range(0f, 1f) < 0.5f ? 1f : -1f);
+        mCamLoc_target.y = (Random.Range(0f, 1f) * 50f + 80f);// * (Random.Range(0f, 1f) < 0.5f ? 1f : -1f);
+        mCamLoc_target.z = (Random.Range(0f, 1f) * 50f + 80f);// * (Random.Range(0f, 1f) < 0.5f ? 1f : -1f);
     }
 
 
